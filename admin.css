@@ -1,0 +1,159 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 16px;
+}
+
+header {
+  background: #0f172a;
+  color: white;
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin-bottom: 6px;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 16px;
+}
+
+input[readonly] {
+  background: #f8fafc;
+  color: #334155;
+  font-weight: bold;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+button {
+  border: none;
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 15px;
+  margin: 4px 0;
+}
+
+.btn-verde {
+  background: #22c55e;
+  color: white;
+}
+
+.btn-azul {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-vermelho {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-cinza {
+  background: #64748b;
+  color: white;
+}
+
+.ponto {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+}
+
+.ponto h3 {
+  margin-bottom: 8px;
+}
+
+.ponto p {
+  margin-bottom: 5px;
+  color: #334155;
+}
+
+.acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#map {
+  height: 400px;
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  header,
+  .card {
+    border-radius: 14px;
+    padding: 15px;
+  }
+
+  #map {
+    height: 330px;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .top-actions,
+  .acoes {
+    flex-direction: column;
+  }
+}
