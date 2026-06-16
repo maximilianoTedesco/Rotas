@@ -396,11 +396,12 @@ function iniciarMapa() {
         );
     
         L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             {
-                attribution: '© OpenStreetMap'
+              maxZoom: 19,
+              attribution: '&copy; OpenStreetMap'
             }
-        ).addTo(mapa);
+          ).addTo(mapa);
     
         mapa.on('click', function(e){
     
