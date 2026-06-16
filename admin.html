@@ -194,7 +194,7 @@
       const usuario = localStorage.getItem("usuarioLogado");
 
       if (usuario !== "admin") {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     }
 
@@ -361,7 +361,7 @@
 
     function sair() {
       localStorage.removeItem("usuarioLogado");
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
 
     carregarRota();
