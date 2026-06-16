@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | Rotas Algarve</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 20px;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p {
+      text-align: center;
+      color: #cbd5e1;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      margin-bottom: 16px;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: #22c55e;
+      color: #fff;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    .erro {
+      display: none;
+      background: #dc2626;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-card">
+    <h1>Rotas Algarve</h1>
+    <p>Acesso administrativo e motorista</p>
+
+    <label for="tipo">Tipo de acesso</label>
+    <select id="tipo">
+      <option value="admin">Administrador</option>
+      <option value="motorista">Motorista</option>
+    </select>
+
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" placeholder="Digite a senha" />
+
+    <button onclick="fazerLogin()">Entrar</button>
+
+    <div class="erro" id="erro">Senha incorreta.</div>
+  </div>
+
+  <script>
+    function fazerLogin() {
+      const tipo = document.getElementById("tipo").value;
+      const senha = document.getElementById("senha").value;
+      const erro = document.getElementById("erro");
+
+      const senhaAdmin = "admin123";
+      const senhaMotorista = "motorista123";
+
+      if (tipo === "admin" && senha === senhaAdmin) {
+        localStorage.setItem("usuarioLogado", "admin");
+        window.location.href = "admin.html";
+      } else if (tipo === "motorista" && senha === senhaMotorista) {
+        localStorage.setItem("usuarioLogado", "motorista");
+        window.location.href = "motorista.html";
+      } else {
+        erro.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
