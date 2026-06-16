@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADM | Rotas Algarve</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 16px;
+    }
+
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 20px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      margin-bottom: 6px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-size: 16px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+
+    button {
+      border: none;
+      padding: 13px 16px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 15px;
+      margin: 4px 0;
+    }
+
+    .btn-verde {
+      background: #22c55e;
+      color: white;
+    }
+
+    .btn-azul {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-vermelho {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-cinza {
+      background: #64748b;
+      color: white;
+    }
+
+    .ponto {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #f8fafc;
+    }
+
+    .ponto h3 {
+      margin-bottom: 8px;
+    }
+
+    .ponto p {
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>Painel ADM</h1>
+      <p>Cadastro manual de pontos de coleta por coordenadas</p>
+
+      <div class="top-actions">
+        <button class="btn-azul" onclick="irMotorista()">Ver tela do motorista</button>
+        <button class="btn-cinza" onclick="sair()">Sair</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Dados da rota</h2>
+
+      <label>Nome da rota</label>
+      <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
+
+      <label>Data</label>
+      <input type="date" id="dataRota" />
+
+      <label>Horário inicial</label>
+      <input type="time" id="horarioInicio" />
+
+      <button class="btn-verde" onclick="salvarRota()">Salvar dados da rota</button>
+    </section>
+
+    <section class="card">
+      <h2>Adicionar ponto de coleta</h2>
+
+      <label>Nome do ponto</label>
+      <input type="text" id="nomePonto" placeholder="Ex: Paragem Praia da Rocha" />
+
+      <label>Latitude</label>
+      <input type="text" id="latitude" placeholder="Ex: 37.1192" />
+
+      <label>Longitude</label>
+      <input type="text" id="longitude" placeholder="Ex: -8.5376" />
+
+      <label>Quantidade de passageiros</label>
+      <input type="number" id="qtdPassageiros" placeholder="Ex: 4" min="1" />
+
+      <label>Horário previsto</label>
+      <input type="time" id="horarioPrevisto" />
+
+      <label>Observação</label>
+      <textarea id="observacao" placeholder="Ex: esperar próximo à paragem principal"></textarea>
+
+      <button class="btn-verde" onclick="adicionarPonto()">Adicionar ponto</button>
+    </section>
+
+    <section class="card">
+      <h2>Pontos cadastrados</h2>
+      <div id="listaPontos"></div>
+
+      <button class="btn-azul" onclick="exportarCSV()">Exportar Excel/CSV</button>
+      <button class="btn-vermelho" onclick="limparTudo()">Limpar rota</button>
+    </section>
+  </div>
+
+  <script>
+    verificarLogin();
+
+    function verificarLogin() {
+      const usuario = localStorage.getItem("usuarioLogado");
+
+      if (usuario !== "admin") {
+        window.location.href = "login.html";
+      }
+    }
+
+    function salvarRota() {
+      const rota = {
+        nome: document.getElementById("nomeRota").value,
+        data: document.getElementById("dataRota").value,
+        horarioInicio: document.getElementById("horarioInicio").value
+      };
+
+      localStorage.setItem("rotaAtual", JSON.stringify(rota));
+      alert("Rota salva com sucesso!");
+    }
+
+    function carregarRota() {
+      const rotaSalva = JSON.parse(localStorage.getItem("rotaAtual"));
+
+      if (rotaSalva) {
+        document.getElementById("nomeRota").value = rotaSalva.nome || "";
+        document.getElementById("dataRota").value = rotaSalva.data || "";
+        document.getElementById("horarioInicio").value = rotaSalva.horarioInicio || "";
+      }
+    }
+
+    function adicionarPonto() {
+      const nomePonto = document.getElementById("nomePonto").value;
+      const latitude = document.getElementById("latitude").value;
+      const longitude = document.getElementById("longitude").value;
+      const qtdPassageiros = document.getElementById("qtdPassageiros").value;
+      const horarioPrevisto = document.getElementById("horarioPrevisto").value;
+      const observacao = document.getElementById("observacao").value;
+
+      if (!nomePonto || !latitude || !longitude || !qtdPassageiros || !horarioPrevisto) {
+        alert("Preencha nome, latitude, longitude, quantidade e horário.");
+        return;
+      }
+
+      const pontos = buscarPontos();
+
+      const novoPonto = {
+        id: Date.now(),
+        ordem: pontos.length + 1,
+        nomePonto,
+        latitude,
+        longitude,
+        qtdPassageiros,
+        horarioPrevisto,
+        observacao,
+        status: "pendente"
+      };
+
+      pontos.push(novoPonto);
+      localStorage.setItem("pontosColeta", JSON.stringify(pontos));
+
+      limparFormularioPonto();
+      listarPontos();
+    }
+
+    function buscarPontos() {
+      return JSON.parse(localStorage.getItem("pontosColeta")) || [];
+    }
+
+    function listarPontos() {
+      const pontos = buscarPontos();
+      const lista = document.getElementById("listaPontos");
+
+      if (pontos.length === 0) {
+        lista.innerHTML = "<p>Nenhum ponto cadastrado ainda.</p>";
+        return;
+      }
+
+      lista.innerHTML = "";
+
+      pontos.forEach((ponto, index) => {
+        const linkMaps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
+
+        const div = document.createElement("div");
+        div.className = "ponto";
+
+        div.innerHTML = `
+          <h3>${index + 1}. ${ponto.nomePonto}</h3>
+          <p><strong>Horário:</strong> ${ponto.horarioPrevisto}</p>
+          <p><strong>Passageiros:</strong> ${ponto.qtdPassageiros}</p>
+          <p><strong>Latitude:</strong> ${ponto.latitude}</p>
+          <p><strong>Longitude:</strong> ${ponto.longitude}</p>
+          <p><strong>Observação:</strong> ${ponto.observacao || "Sem observação"}</p>
+
+          <div class="acoes">
+            <button class="btn-azul" onclick="abrirMaps('${linkMaps}')">Abrir Google Maps</button>
+            <button class="btn-vermelho" onclick="removerPonto(${ponto.id})">Remover</button>
+          </div>
+        `;
+
+        lista.appendChild(div);
+      });
+    }
+
+    function abrirMaps(link) {
+      window.open(link, "_blank");
+    }
+
+    function removerPonto(id) {
+      let pontos = buscarPontos();
+      pontos = pontos.filter(ponto => ponto.id !== id);
+
+      pontos = pontos.map((ponto, index) => ({
+        ...ponto,
+        ordem: index + 1
+      }));
+
+      localStorage.setItem("pontosColeta", JSON.stringify(pontos));
+      listarPontos();
+    }
+
+    function limparFormularioPonto() {
+      document.getElementById("nomePonto").value = "";
+      document.getElementById("latitude").value = "";
+      document.getElementById("longitude").value = "";
+      document.getElementById("qtdPassageiros").value = "";
+      document.getElementById("horarioPrevisto").value = "";
+      document.getElementById("observacao").value = "";
+    }
+
+    function exportarCSV() {
+      const rota = JSON.parse(localStorage.getItem("rotaAtual")) || {};
+      const pontos = buscarPontos();
+
+      if (pontos.length === 0) {
+        alert("Não existem pontos para exportar.");
+        return;
+      }
+
+      let csv = "Rota,Data,Horario Inicial,Ordem,Ponto,Horario,Passageiros,Latitude,Longitude,Observacao,Google Maps\n";
+
+      pontos.forEach((ponto, index) => {
+        const maps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
+
+        csv += `"${rota.nome || ""}","${rota.data || ""}","${rota.horarioInicio || ""}","${index + 1}","${ponto.nomePonto}","${ponto.horarioPrevisto}","${ponto.qtdPassageiros}","${ponto.latitude}","${ponto.longitude}","${ponto.observacao || ""}","${maps}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+
+      link.href = URL.createObjectURL(blob);
+      link.download = "rota_pontos_coleta.csv";
+      link.click();
+    }
+
+    function limparTudo() {
+      const confirmar = confirm("Tem certeza que deseja apagar toda a rota e os pontos?");
+
+      if (confirmar) {
+        localStorage.removeItem("rotaAtual");
+        localStorage.removeItem("pontosColeta");
+        carregarRota();
+        listarPontos();
+      }
+    }
+
+    function irMotorista() {
+      localStorage.setItem("usuarioLogado", "motorista");
+      window.location.href = "motorista.html";
+    }
+
+    function sair() {
+      localStorage.removeItem("usuarioLogado");
+      window.location.href = "login.html";
+    }
+
+    carregarRota();
+    listarPontos();
+  </script>
+</body>
+</html>
