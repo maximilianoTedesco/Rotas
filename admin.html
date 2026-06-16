@@ -175,13 +175,16 @@
       <label>Nome do ponto</label>
       <input type="text" id="nomePonto" placeholder="Ex: Paragem Praia da Rocha" />
 
-      <label>Latitude</label>
-      <input type="text" id="latitude" placeholder="Ex: 37.1192" />
+      <label>Coordenadas Selecionadas</label>
+      
+      <input
+        type="text"
+        id="coordenadas"
+        readonly
+        placeholder="Clique no mapa para selecionar"
+        />
 
-      <label>Longitude</label>
-      <label>Selecionar ponto no mapa</label>
-
-        <div id="map"></div>
+      <div id="map"></div>
       <input type="text" id="longitude" placeholder="Ex: -8.5376" />
 
       <label>Quantidade de passageiros</label>
