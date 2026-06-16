@@ -382,8 +382,47 @@
       window.location.href = "index.html";
     }
 
-    carregarRota();
-    listarPontos();
+      carregarRota();
+      listarPontos();
+      iniciarMapa();
+    let mapa;
+let marcador;
+
+function iniciarMapa() {
+
+    mapa = L.map('map').setView(
+            [37.1365, -8.5377],
+            12
+        );
+    
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution: '© OpenStreetMap'
+            }
+        ).addTo(mapa);
+    
+        mapa.on('click', function(e){
+    
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+    
+            document.getElementById('latitude').value =
+                lat.toFixed(6);
+    
+            document.getElementById('longitude').value =
+                lng.toFixed(6);
+    
+            if(marcador){
+                mapa.removeLayer(marcador);
+            }
+    
+            marcador = L.marker([lat,lng])
+                .addTo(mapa);
+        });
+    
+    }
+    
   </script>
 </body>
 </html>
