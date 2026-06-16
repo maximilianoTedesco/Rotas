@@ -1,85 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ADM | Rotas Algarve</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
- 
+    <title>ADM | Rotas Algarve</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
-   <link rel="stylesheet" href="admin.css" />
-   <script src="admin.js"></script>
-   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- CSS do projeto -->
+    <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
-  <div class="container">
-    <header>
-      <h1>Painel ADM</h1>
-      <p>Cadastro manual de pontos de coleta por coordenadas</p>
 
-      <div class="top-actions">
-        <button class="btn-azul" onclick="irMotorista()">Ver tela do motorista</button>
-        <button class="btn-cinza" onclick="sair()">Sair</button>
-      </div>
-    </header>
+    <div class="container">
 
-    <section class="card">
-      <h2>Dados da rota</h2>
+        <header>
+            <h1>Painel ADM</h1>
+            <p>Cadastro de pontos de coleta</p>
 
-      <label>Nome da rota</label>
-      <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
+            <div class="top-actions">
+                <button
+                    class="btn-azul"
+                    onclick="irMotorista()">
+                    Ver tela do motorista
+                </button>
 
-      <label>Data</label>
-      <input type="date" id="dataRota" />
+                <button
+                    class="btn-cinza"
+                    onclick="sair()">
+                    Sair
+                </button>
+            </div>
+        </header>
 
-      <label>Horário inicial</label>
-      <input type="time" id="horarioInicio" />
+        <!-- DADOS DA ROTA -->
 
-      <button class="btn-verde" onclick="salvarRota()">Salvar dados da rota</button>
-    </section>
+        <section class="card">
 
-    <section class="card">
-      <h2>Adicionar ponto de coleta</h2>
+            <h2>Dados da rota</h2>
 
-      <label>Nome do ponto</label>
-      <input type="text" id="nomePonto" placeholder="Ex: Paragem Praia da Rocha" />
+            <label>Nome da rota</label>
 
-      <label>Coordenadas Selecionadas</label>
-      
-      <input
-        type="text"
-        id="coordenadas"
-        readonly
-        placeholder="Clique no mapa para selecionar"
-        />
+            <input
+                type="text"
+                id="nomeRota"
+                placeholder="Ex: Rota Manhã Portimão - Hotéis"
+            >
 
-      <div id="map"></div>
-      <input type="text" id="longitude" placeholder="Ex: -8.5376" />
+            <label>Data</label>
 
-      <label>Quantidade de passageiros</label>
-      <input type="number" id="qtdPassageiros" placeholder="Ex: 4" min="1" />
+            <input
+                type="date"
+                id="dataRota"
+            >
 
-      <label>Horário previsto</label>
-      <input type="time" id="horarioPrevisto" />
+            <label>Horário inicial</label>
 
-      <label>Observação</label>
-      <textarea id="observacao" placeholder="Ex: esperar próximo à paragem principal"></textarea>
+            <input
+                type="time"
+                id="horarioInicio"
+            >
 
-      <button class="btn-verde" onclick="adicionarPonto()">Adicionar ponto</button>
-    </section>
+            <button
+                class="btn-verde"
+                onclick="salvarRota()">
+                Salvar dados da rota
+            </button>
 
-    <section class="card">
-      <h2>Pontos cadastrados</h2>
-      <div id="listaPontos"></div>
+        </section>
 
-      <button class="btn-azul" onclick="exportarCSV()">Exportar Excel/CSV</button>
-      <button class="btn-vermelho" onclick="limparTudo()">Limpar rota</button>
-    </section>
-  </div>
+        <!-- PONTO DE COLETA -->
+
+        <section class="card">
+
+            <h2>Adicionar ponto de coleta</h2>
+
+            <label>Nome do ponto</label>
+
+            <input
+                type="text"
+                id="nomePonto"
+                placeholder="Ex: Paragem Praia da Rocha"
+            >
+
+            <label>Coordenadas Selecionadas</label>
+
+            <input
+                type="text"
+                id="coordenadas"
+                readonly
+                placeholder="Clique no mapa para selecionar"
+            >
+
+            <label>Selecionar ponto no mapa</label>
+
+            <div id="map"></div>
+
+            <label>Quantidade de passageiros</label>
+
+            <input
+                type="number"
+                id="qtdPassageiros"
+                min="1"
+                placeholder="Ex: 4"
+            >
+
+            <label>Horário previsto</label>
+
+            <input
+                type="time"
+                id="horarioPrevisto"
+            >
+
+            <label>Observação</label>
+
+            <textarea
+                id="observacao"
+                placeholder="Ex: esperar próximo à paragem principal">
+            </textarea>
+
+            <button
+                class="btn-verde"
+                onclick="adicionarPonto()">
+                Adicionar ponto
+            </button>
+
+        </section>
+
+        <!-- LISTA DE PONTOS -->
+
+        <section class="card">
+
+            <h2>Pontos cadastrados</h2>
+
+            <div id="listaPontos"></div>
+
+            <button
+                class="btn-azul"
+                onclick="exportarCSV()">
+                Exportar Excel / CSV
+            </button>
+
+            <button
+                class="btn-vermelho"
+                onclick="limparTudo()">
+                Limpar rota
+            </button>
+
+        </section>
+
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- JS do projeto -->
+    <script src="admin.js"></script>
+
 </body>
 </html>
