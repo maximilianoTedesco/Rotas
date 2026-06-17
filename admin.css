@@ -98,20 +98,23 @@ button {
 }
 
 .top-actions,
-.acoes {
+.acoes,
+.modo-mapa-box {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
+  margin-bottom: 12px;
 }
 
 #map {
-  height: 400px;
+  height: 420px;
   width: 100%;
   border-radius: 12px;
   margin-bottom: 15px;
   border: 1px solid #cbd5e1;
   overflow: hidden;
+  background: #e2e8f0;
 }
 
 .ponto {
@@ -137,6 +140,15 @@ button {
   font-size: 14px;
 }
 
+.destaque {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
 @media (max-width: 600px) {
   body {
     padding: 10px;
@@ -149,7 +161,7 @@ button {
   }
 
   #map {
-    height: 330px;
+    height: 340px;
   }
 
   button {
@@ -157,7 +169,8 @@ button {
   }
 
   .top-actions,
-  .acoes {
+  .acoes,
+  .modo-mapa-box {
     flex-direction: column;
   }
 }
