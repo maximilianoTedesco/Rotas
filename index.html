@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Login | Rotas Algarve</title>
 
   <style>
@@ -87,22 +88,22 @@
     <h1>Rotas Algarve</h1>
     <p>Acesso administrativo e motorista</p>
 
-    <label for="usuario">Usuário</label>
-    <input type="text" id="usuario" placeholder="Ex: admin ou motorista" />
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Ex: admin@rotas.pt" />
 
     <label for="senha">Senha</label>
-    <input type="password" id="senha" placeholder="Digite a senha" />
+    <input type="password" id="senha" placeholder="Digite sua senha" />
 
     <button onclick="fazerLogin()">Entrar</button>
 
-    <div class="erro" id="erro">Usuário ou senha inválidos.</div>
+    <div class="erro" id="erro">Email ou senha inválidos.</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
+    const SUPABASE_URL = "COLE_AQUI_SUA_SUPABASE_URL";
+    const SUPABASE_KEY = "COLE_AQUI_SUA_SUPABASE_ANON_KEY";
 
     const supabaseClient = window.supabase.createClient(
       SUPABASE_URL,
@@ -110,41 +111,52 @@
     );
 
     async function fazerLogin() {
-      const usuario = document.getElementById("usuario").value.trim();
+      const email = document.getElementById("email").value.trim();
       const senha = document.getElementById("senha").value.trim();
       const erro = document.getElementById("erro");
 
       erro.style.display = "none";
 
-      if (!usuario || !senha) {
-        erro.textContent = "Preencha usuário e senha.";
+      if (!email || !senha) {
+        erro.textContent = "Preencha email e senha.";
         erro.style.display = "block";
         return;
       }
 
-      const { data, error } = await supabaseClient
-        .from("usuarios")
+      const { data: loginData, error: loginError } =
+        await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: senha
+        });
+
+      if (loginError || !loginData.user) {
+        erro.textContent = "Email ou senha inválidos.";
+        erro.style.display = "block";
+        return;
+      }
+
+      const { data: perfilData, error: perfilError } = await supabaseClient
+        .from("perfis")
         .select("*")
-        .eq("usuario", usuario)
-        .eq("senha", senha)
+        .eq("id", loginData.user.id)
         .eq("ativo", true)
         .single();
 
-      if (error || !data) {
-        erro.textContent = "Usuário ou senha inválidos.";
+      if (perfilError || !perfilData) {
+        erro.textContent = "Usuário sem perfil ativo.";
         erro.style.display = "block";
         return;
       }
 
-      localStorage.setItem("usuarioLogado", data.perfil);
-      localStorage.setItem("usuarioNome", data.usuario);
+      localStorage.setItem("usuarioLogado", perfilData.perfil);
+      localStorage.setItem("usuarioNome", perfilData.nome || email);
 
-      if (data.perfil === "admin") {
+      if (perfilData.perfil === "admin") {
         window.location.href = "admin.html";
         return;
       }
 
-      if (data.perfil === "motorista") {
+      if (perfilData.perfil === "motorista") {
         window.location.href = "motorista.html";
         return;
       }
