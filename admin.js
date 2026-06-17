@@ -1,3 +1,11 @@
+const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
 let mapa;
 let marcador;
 
