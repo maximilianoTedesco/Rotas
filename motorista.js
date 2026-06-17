@@ -7,10 +7,25 @@ let rotaAtual = null;
 
 verificarLogin();
 
-function verificarLogin() {
-  const usuario = localStorage.getItem("usuarioLogado");
+async function verificarLogin() {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
 
-  if (usuario !== "motorista" && usuario !== "admin") {
+  if (!sessionData.session) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const userId = sessionData.session.user.id;
+
+  const { data: perfil, error } = await supabaseClient
+    .from("perfis")
+    .select("*")
+    .eq("id", userId)
+    .eq("ativo", true)
+    .single();
+
+  if (error || !perfil || !["motorista", "admin"].includes(perfil.perfil)) {
+    await supabaseClient.auth.signOut();
     window.location.href = "index.html";
   }
 }
@@ -165,12 +180,11 @@ function traduzirStatus(status) {
   return "PENDENTE";
 }
 
-function sair() {
-  localStorage.removeItem("usuarioLogado");
+async function sair() {
+  await supabaseClient.auth.signOut();
+  localStorage.clear();
   window.location.href = "index.html";
 }
-
-carregarRotaMotorista();
 
 function mostrarRotaCompleta(pontos) {
   const box = document.getElementById("rotaCompletaBox");
