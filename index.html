@@ -50,7 +50,7 @@
       font-weight: bold;
     }
 
-    input, select {
+    input {
       width: 100%;
       padding: 14px;
       border-radius: 12px;
@@ -71,10 +71,6 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: #16a34a;
-    }
-
     .erro {
       display: none;
       background: #dc2626;
@@ -91,41 +87,70 @@
     <h1>Rotas Algarve</h1>
     <p>Acesso administrativo e motorista</p>
 
-    <label for="tipo">Tipo de acesso</label>
-    <select id="tipo">
-      <option value="admin">Administrador</option>
-      <option value="motorista">Motorista</option>
-    </select>
+    <label for="usuario">Usuário</label>
+    <input type="text" id="usuario" placeholder="Ex: admin ou motorista" />
 
     <label for="senha">Senha</label>
     <input type="password" id="senha" placeholder="Digite a senha" />
 
     <button onclick="fazerLogin()">Entrar</button>
 
-    <div class="erro" id="erro">Senha incorreta.</div>
+    <div class="erro" id="erro">Usuário ou senha inválidos.</div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="login.js"></script>
-  
+
   <script>
-    function fazerLogin() {
-      const tipo = document.getElementById("tipo").value;
-      const senha = document.getElementById("senha").value;
+    const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    async function fazerLogin() {
+      const usuario = document.getElementById("usuario").value.trim();
+      const senha = document.getElementById("senha").value.trim();
       const erro = document.getElementById("erro");
 
-      const senhaAdmin = "admin123";
-      const senhaMotorista = "motorista123";
+      erro.style.display = "none";
 
-      if (tipo === "admin" && senha === senhaAdmin) {
-        localStorage.setItem("usuarioLogado", "admin");
-        window.location.href = "admin.html";
-      } else if (tipo === "motorista" && senha === senhaMotorista) {
-        localStorage.setItem("usuarioLogado", "motorista");
-        window.location.href = "motorista.html";
-      } else {
+      if (!usuario || !senha) {
+        erro.textContent = "Preencha usuário e senha.";
         erro.style.display = "block";
+        return;
       }
+
+      const { data, error } = await supabaseClient
+        .from("usuarios")
+        .select("*")
+        .eq("usuario", usuario)
+        .eq("senha", senha)
+        .eq("ativo", true)
+        .single();
+
+      if (error || !data) {
+        erro.textContent = "Usuário ou senha inválidos.";
+        erro.style.display = "block";
+        return;
+      }
+
+      localStorage.setItem("usuarioLogado", data.perfil);
+      localStorage.setItem("usuarioNome", data.usuario);
+
+      if (data.perfil === "admin") {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      if (data.perfil === "motorista") {
+        window.location.href = "motorista.html";
+        return;
+      }
+
+      erro.textContent = "Perfil não autorizado.";
+      erro.style.display = "block";
     }
   </script>
 </body>
