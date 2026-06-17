@@ -218,3 +218,38 @@ function mostrarRotaCompleta(pontos) {
     </div>
   `;
 }
+
+async function fazerLogin() {
+
+    const usuario =
+        document.getElementById("usuario").value;
+
+    const senha =
+        document.getElementById("senha").value;
+
+    const { data, error } = await supabaseClient
+        .from("usuarios")
+        .select("*")
+        .eq("usuario", usuario)
+        .eq("senha", senha)
+        .eq("ativo", true)
+        .single();
+
+    if(error || !data){
+        alert("Usuário ou senha inválidos");
+        return;
+    }
+
+    localStorage.setItem(
+        "usuarioLogado",
+        data.perfil
+    );
+
+    if(data.perfil === "admin"){
+        window.location.href = "admin.html";
+    }
+
+    if(data.perfil === "motorista"){
+        window.location.href = "motorista.html";
+    }
+}
