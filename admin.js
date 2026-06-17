@@ -1,229 +1,80 @@
-const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+  <title>ADM | Rotas Algarve</title>
 
-let mapa;
-let marcador;
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
 
-verificarLogin();
+<body>
+  <div class="container">
+    <header>
+      <h1>Painel ADM</h1>
+      <p>Cadastro de rotas e pontos de coleta</p>
 
-function verificarLogin() {
-  const usuario = localStorage.getItem("usuarioLogado");
-
-  if (usuario !== "admin") {
-    window.location.href = "index.html";
-  }
-}
-
-function salvarRota() {
-  const rota = {
-    nome: document.getElementById("nomeRota").value,
-    data: document.getElementById("dataRota").value,
-    horarioInicio: document.getElementById("horarioInicio").value
-  };
-
-  localStorage.setItem("rotaAtual", JSON.stringify(rota));
-  alert("Rota salva com sucesso!");
-}
-
-function carregarRota() {
-  const rotaSalva = JSON.parse(localStorage.getItem("rotaAtual"));
-
-  if (rotaSalva) {
-    document.getElementById("nomeRota").value = rotaSalva.nome || "";
-    document.getElementById("dataRota").value = rotaSalva.data || "";
-    document.getElementById("horarioInicio").value = rotaSalva.horarioInicio || "";
-  }
-}
-
-function iniciarMapa() {
-  mapa = L.map("map").setView([37.1365, -8.5377], 13);
-
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-    attribution: "&copy; OpenStreetMap"
-  }).addTo(mapa);
-
-  setTimeout(() => {
-    mapa.invalidateSize();
-  }, 500);
-
-  mapa.on("click", function (e) {
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
-
-    document.getElementById("coordenadas").value =
-      `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-
-    if (marcador) {
-      mapa.removeLayer(marcador);
-    }
-
-    marcador = L.marker([lat, lng]).addTo(mapa);
-  });
-}
-
-function adicionarPonto() {
-  const nomePonto = document.getElementById("nomePonto").value;
-  const coordenadas = document.getElementById("coordenadas").value;
-  const qtdPassageiros = document.getElementById("qtdPassageiros").value;
-  const horarioPrevisto = document.getElementById("horarioPrevisto").value;
-  const observacao = document.getElementById("observacao").value;
-
-  if (!coordenadas) {
-    alert("Selecione um ponto no mapa.");
-    return;
-  }
-
-  const partes = coordenadas.split(",");
-  const latitude = partes[0].trim();
-  const longitude = partes[1].trim();
-
-  if (!nomePonto || !latitude || !longitude || !qtdPassageiros || !horarioPrevisto) {
-    alert("Preencha nome, ponto no mapa, quantidade e horário.");
-    return;
-  }
-
-  const pontos = buscarPontos();
-
-  const novoPonto = {
-    id: Date.now(),
-    ordem: pontos.length + 1,
-    nomePonto,
-    latitude,
-    longitude,
-    qtdPassageiros,
-    horarioPrevisto,
-    observacao,
-    status: "pendente"
-  };
-
-  pontos.push(novoPonto);
-  localStorage.setItem("pontosColeta", JSON.stringify(pontos));
-
-  limparFormularioPonto();
-  listarPontos();
-}
-
-function buscarPontos() {
-  return JSON.parse(localStorage.getItem("pontosColeta")) || [];
-}
-
-function listarPontos() {
-  const pontos = buscarPontos();
-  const lista = document.getElementById("listaPontos");
-
-  if (pontos.length === 0) {
-    lista.innerHTML = "<p>Nenhum ponto cadastrado ainda.</p>";
-    return;
-  }
-
-  lista.innerHTML = "";
-
-  pontos.forEach((ponto, index) => {
-    const linkMaps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
-
-    const div = document.createElement("div");
-    div.className = "ponto";
-
-    div.innerHTML = `
-      <h3>${index + 1}. ${ponto.nomePonto}</h3>
-      <p><strong>Horário:</strong> ${ponto.horarioPrevisto}</p>
-      <p><strong>Passageiros:</strong> ${ponto.qtdPassageiros}</p>
-      <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
-      <p><strong>Observação:</strong> ${ponto.observacao || "Sem observação"}</p>
-
-      <div class="acoes">
-        <button class="btn-azul" onclick="abrirMaps('${linkMaps}')">Abrir Google Maps</button>
-        <button class="btn-vermelho" onclick="removerPonto(${ponto.id})">Remover</button>
+      <div class="top-actions">
+        <button class="btn-azul" onclick="irMotorista()">Ver tela do motorista</button>
+        <button class="btn-cinza" onclick="sair()">Sair</button>
       </div>
-    `;
+    </header>
 
-    lista.appendChild(div);
-  });
-}
+    <section class="card">
+      <h2>Dados da rota</h2>
 
-function abrirMaps(link) {
-  window.open(link, "_blank");
-}
+      <label>Nome da rota</label>
+      <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
 
-function removerPonto(id) {
-  let pontos = buscarPontos();
+      <label>Data</label>
+      <input type="date" id="dataRota" />
 
-  pontos = pontos.filter(ponto => ponto.id !== id);
+      <label>Horário inicial</label>
+      <input type="time" id="horarioInicio" />
 
-  pontos = pontos.map((ponto, index) => ({
-    ...ponto,
-    ordem: index + 1
-  }));
+      <button class="btn-verde" onclick="salvarRota()">Salvar / Atualizar rota</button>
 
-  localStorage.setItem("pontosColeta", JSON.stringify(pontos));
-  listarPontos();
-}
+      <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
+    </section>
 
-function limparFormularioPonto() {
-  document.getElementById("nomePonto").value = "";
-  document.getElementById("coordenadas").value = "";
-  document.getElementById("qtdPassageiros").value = "";
-  document.getElementById("horarioPrevisto").value = "";
-  document.getElementById("observacao").value = "";
+    <section class="card">
+      <h2>Adicionar ponto de coleta</h2>
 
-  if (marcador) {
-    mapa.removeLayer(marcador);
-    marcador = null;
-  }
-}
+      <label>Nome do ponto</label>
+      <input type="text" id="nomePonto" placeholder="Ex: Paragem Praia da Rocha" />
 
-function exportarCSV() {
-  const rota = JSON.parse(localStorage.getItem("rotaAtual")) || {};
-  const pontos = buscarPontos();
+      <label>Coordenadas selecionadas</label>
+      <input type="text" id="coordenadas" readonly placeholder="Clique no mapa para selecionar" />
 
-  if (pontos.length === 0) {
-    alert("Não existem pontos para exportar.");
-    return;
-  }
+      <label>Selecionar ponto no mapa</label>
+      <div id="map"></div>
 
-  let csv = "Rota,Data,Horario Inicial,Ordem,Ponto,Horario,Passageiros,Latitude,Longitude,Observacao,Google Maps\n";
+      <label>Quantidade de passageiros</label>
+      <input type="number" id="qtdPassageiros" min="1" placeholder="Ex: 4" />
 
-  pontos.forEach((ponto, index) => {
-    const maps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
+      <label>Horário previsto</label>
+      <input type="time" id="horarioPrevisto" />
 
-    csv += `"${rota.nome || ""}","${rota.data || ""}","${rota.horarioInicio || ""}","${index + 1}","${ponto.nomePonto}","${ponto.horarioPrevisto}","${ponto.qtdPassageiros}","${ponto.latitude}","${ponto.longitude}","${ponto.observacao || ""}","${maps}"\n`;
-  });
+      <label>Observação</label>
+      <textarea id="observacao" placeholder="Ex: esperar próximo à paragem principal"></textarea>
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
+      <button class="btn-verde" onclick="adicionarPonto()">Adicionar ponto</button>
+    </section>
 
-  link.href = URL.createObjectURL(blob);
-  link.download = "rota_pontos_coleta.csv";
-  link.click();
-}
+    <section class="card">
+      <h2>Pontos cadastrados</h2>
 
-function limparTudo() {
-  const confirmar = confirm("Tem certeza que deseja apagar toda a rota e os pontos?");
+      <div id="listaPontos"></div>
 
-  if (confirmar) {
-    localStorage.removeItem("rotaAtual");
-    localStorage.removeItem("pontosColeta");
-    carregarRota();
-    listarPontos();
-  }
-}
+      <button class="btn-azul" onclick="exportarCSV()">Exportar Excel / CSV</button>
+      <button class="btn-vermelho" onclick="limparTudo()">Limpar rota atual</button>
+    </section>
+  </div>
 
-function irMotorista() {
-  localStorage.setItem("usuarioLogado", "motorista");
-  window.location.href = "motorista.html";
-}
-
-function sair() {
-  localStorage.removeItem("usuarioLogado");
-  window.location.href = "index.html";
-}
-
-carregarRota();
-listarPontos();
-iniciarMapa();
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
