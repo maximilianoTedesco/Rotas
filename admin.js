@@ -1,80 +1,371 @@
-<!DOCTYPE html>
-<html lang="pt-PT">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+const SUPABASE_URL = "COLE_AQUI_SUA_SUPABASE_URL";
+const SUPABASE_KEY = "COLE_AQUI_SUA_SUPABASE_ANON_KEY";
 
-  <title>ADM | Rotas Algarve</title>
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css" />
-</head>
+let mapa;
+let marcador;
+let rotaAtualId = null;
 
-<body>
-  <div class="container">
-    <header>
-      <h1>Painel ADM</h1>
-      <p>Cadastro de rotas e pontos de coleta</p>
+verificarLogin();
 
-      <div class="top-actions">
-        <button class="btn-azul" onclick="irMotorista()">Ver tela do motorista</button>
-        <button class="btn-cinza" onclick="sair()">Sair</button>
+function verificarLogin() {
+  const usuario = localStorage.getItem("usuarioLogado");
+
+  if (usuario !== "admin") {
+    window.location.href = "index.html";
+  }
+}
+
+async function salvarRota() {
+  const nome = document.getElementById("nomeRota").value.trim();
+  const data = document.getElementById("dataRota").value;
+  const horarioInicio = document.getElementById("horarioInicio").value;
+
+  if (!nome || !data || !horarioInicio) {
+    alert("Preencha nome da rota, data e horário inicial.");
+    return;
+  }
+
+  if (rotaAtualId) {
+    const { error } = await supabaseClient
+      .from("rotas")
+      .update({
+        nome,
+        data,
+        horario_inicio: horarioInicio,
+        status: "ativa"
+      })
+      .eq("id", rotaAtualId);
+
+    if (error) {
+      alert("Erro ao atualizar rota: " + error.message);
+      return;
+    }
+
+    alert("Rota atualizada com sucesso!");
+  } else {
+    const { data: rotaCriada, error } = await supabaseClient
+      .from("rotas")
+      .insert({
+        nome,
+        data,
+        horario_inicio: horarioInicio,
+        status: "ativa"
+      })
+      .select()
+      .single();
+
+    if (error) {
+      alert("Erro ao criar rota: " + error.message);
+      return;
+    }
+
+    rotaAtualId = rotaCriada.id;
+    localStorage.setItem("rotaAtualId", rotaAtualId);
+
+    alert("Rota criada com sucesso!");
+  }
+
+  atualizarTextoRota();
+  listarPontos();
+}
+
+async function carregarRotaAtual() {
+  const rotaIdSalva = localStorage.getItem("rotaAtualId");
+
+  let query = supabaseClient
+    .from("rotas")
+    .select("*")
+    .eq("status", "ativa")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (rotaIdSalva) {
+    query = supabaseClient
+      .from("rotas")
+      .select("*")
+      .eq("id", rotaIdSalva)
+      .limit(1);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    atualizarTextoRota();
+    return;
+  }
+
+  const rota = data[0];
+
+  rotaAtualId = rota.id;
+  localStorage.setItem("rotaAtualId", rotaAtualId);
+
+  document.getElementById("nomeRota").value = rota.nome || "";
+  document.getElementById("dataRota").value = rota.data || "";
+  document.getElementById("horarioInicio").value = rota.horario_inicio || "";
+
+  atualizarTextoRota();
+}
+
+function atualizarTextoRota() {
+  const texto = document.getElementById("rotaAtualTexto");
+
+  if (!rotaAtualId) {
+    texto.textContent = "Nenhuma rota carregada. Salve os dados da rota antes de adicionar pontos.";
+    return;
+  }
+
+  texto.textContent = "Rota atual carregada. Os pontos serão salvos nesta rota.";
+}
+
+function iniciarMapa() {
+  mapa = L.map("map").setView([37.1365, -8.5377], 13);
+
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap"
+  }).addTo(mapa);
+
+  setTimeout(() => {
+    mapa.invalidateSize();
+  }, 500);
+
+  mapa.on("click", function (e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+
+    document.getElementById("coordenadas").value =
+      `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+    if (marcador) {
+      mapa.removeLayer(marcador);
+    }
+
+    marcador = L.marker([lat, lng]).addTo(mapa);
+  });
+}
+
+async function adicionarPonto() {
+  if (!rotaAtualId) {
+    alert("Salve primeiro os dados da rota.");
+    return;
+  }
+
+  const nomePonto = document.getElementById("nomePonto").value.trim();
+  const coordenadas = document.getElementById("coordenadas").value.trim();
+  const qtdPassageiros = Number(document.getElementById("qtdPassageiros").value);
+  const horarioPrevisto = document.getElementById("horarioPrevisto").value;
+  const observacao = document.getElementById("observacao").value.trim();
+
+  if (!coordenadas) {
+    alert("Selecione um ponto no mapa.");
+    return;
+  }
+
+  const partes = coordenadas.split(",");
+  const latitude = Number(partes[0].trim());
+  const longitude = Number(partes[1].trim());
+
+  if (!nomePonto || !latitude || !longitude || !qtdPassageiros || !horarioPrevisto) {
+    alert("Preencha nome, ponto no mapa, quantidade e horário.");
+    return;
+  }
+
+  const { count } = await supabaseClient
+    .from("pontos_coleta")
+    .select("*", { count: "exact", head: true })
+    .eq("rota_id", rotaAtualId);
+
+  const ordem = (count || 0) + 1;
+
+  const { error } = await supabaseClient
+    .from("pontos_coleta")
+    .insert({
+      rota_id: rotaAtualId,
+      ordem,
+      nome_ponto: nomePonto,
+      latitude,
+      longitude,
+      qtd_passageiros: qtdPassageiros,
+      horario_previsto: horarioPrevisto,
+      observacao,
+      status: "pendente"
+    });
+
+  if (error) {
+    alert("Erro ao adicionar ponto: " + error.message);
+    return;
+  }
+
+  limparFormularioPonto();
+  listarPontos();
+}
+
+async function buscarPontos() {
+  if (!rotaAtualId) return [];
+
+  const { data, error } = await supabaseClient
+    .from("pontos_coleta")
+    .select("*")
+    .eq("rota_id", rotaAtualId)
+    .order("ordem", { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function listarPontos() {
+  const pontos = await buscarPontos();
+  const lista = document.getElementById("listaPontos");
+
+  if (pontos.length === 0) {
+    lista.innerHTML = "<p>Nenhum ponto cadastrado ainda.</p>";
+    return;
+  }
+
+  lista.innerHTML = "";
+
+  pontos.forEach((ponto, index) => {
+    const linkMaps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
+
+    const div = document.createElement("div");
+    div.className = "ponto";
+
+    div.innerHTML = `
+      <h3>${index + 1}. ${ponto.nome_ponto}</h3>
+      <p><strong>Horário:</strong> ${ponto.horario_previsto}</p>
+      <p><strong>Passageiros:</strong> ${ponto.qtd_passageiros}</p>
+      <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
+      <p><strong>Status:</strong> ${traduzirStatus(ponto.status)}</p>
+      <p><strong>Observação:</strong> ${ponto.observacao || "Sem observação"}</p>
+
+      <div class="acoes">
+        <button class="btn-azul" onclick="abrirMaps('${linkMaps}')">Abrir Google Maps</button>
+        <button class="btn-vermelho" onclick="removerPonto('${ponto.id}')">Remover</button>
       </div>
-    </header>
+    `;
 
-    <section class="card">
-      <h2>Dados da rota</h2>
+    lista.appendChild(div);
+  });
+}
 
-      <label>Nome da rota</label>
-      <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
+function abrirMaps(link) {
+  window.open(link, "_blank");
+}
 
-      <label>Data</label>
-      <input type="date" id="dataRota" />
+async function removerPonto(id) {
+  const confirmar = confirm("Deseja remover este ponto?");
 
-      <label>Horário inicial</label>
-      <input type="time" id="horarioInicio" />
+  if (!confirmar) return;
 
-      <button class="btn-verde" onclick="salvarRota()">Salvar / Atualizar rota</button>
+  const { error } = await supabaseClient
+    .from("pontos_coleta")
+    .delete()
+    .eq("id", id);
 
-      <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
-    </section>
+  if (error) {
+    alert("Erro ao remover ponto: " + error.message);
+    return;
+  }
 
-    <section class="card">
-      <h2>Adicionar ponto de coleta</h2>
+  listarPontos();
+}
 
-      <label>Nome do ponto</label>
-      <input type="text" id="nomePonto" placeholder="Ex: Paragem Praia da Rocha" />
+function limparFormularioPonto() {
+  document.getElementById("nomePonto").value = "";
+  document.getElementById("coordenadas").value = "";
+  document.getElementById("qtdPassageiros").value = "";
+  document.getElementById("horarioPrevisto").value = "";
+  document.getElementById("observacao").value = "";
 
-      <label>Coordenadas selecionadas</label>
-      <input type="text" id="coordenadas" readonly placeholder="Clique no mapa para selecionar" />
+  if (marcador) {
+    mapa.removeLayer(marcador);
+    marcador = null;
+  }
+}
 
-      <label>Selecionar ponto no mapa</label>
-      <div id="map"></div>
+async function exportarCSV() {
+  const pontos = await buscarPontos();
 
-      <label>Quantidade de passageiros</label>
-      <input type="number" id="qtdPassageiros" min="1" placeholder="Ex: 4" />
+  if (pontos.length === 0) {
+    alert("Não existem pontos para exportar.");
+    return;
+  }
 
-      <label>Horário previsto</label>
-      <input type="time" id="horarioPrevisto" />
+  const rota = {
+    nome: document.getElementById("nomeRota").value,
+    data: document.getElementById("dataRota").value,
+    horarioInicio: document.getElementById("horarioInicio").value
+  };
 
-      <label>Observação</label>
-      <textarea id="observacao" placeholder="Ex: esperar próximo à paragem principal"></textarea>
+  let csv = "Rota,Data,Horario Inicial,Ordem,Ponto,Horario,Passageiros,Latitude,Longitude,Status,Observacao,Google Maps\n";
 
-      <button class="btn-verde" onclick="adicionarPonto()">Adicionar ponto</button>
-    </section>
+  pontos.forEach((ponto, index) => {
+    const maps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
 
-    <section class="card">
-      <h2>Pontos cadastrados</h2>
+    csv += `"${rota.nome}","${rota.data}","${rota.horarioInicio}","${index + 1}","${ponto.nome_ponto}","${ponto.horario_previsto}","${ponto.qtd_passageiros}","${ponto.latitude}","${ponto.longitude}","${ponto.status}","${ponto.observacao || ""}","${maps}"\n`;
+  });
 
-      <div id="listaPontos"></div>
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
 
-      <button class="btn-azul" onclick="exportarCSV()">Exportar Excel / CSV</button>
-      <button class="btn-vermelho" onclick="limparTudo()">Limpar rota atual</button>
-    </section>
-  </div>
+  link.href = URL.createObjectURL(blob);
+  link.download = "rota_pontos_coleta.csv";
+  link.click();
+}
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js"></script>
-</body>
-</html>
+async function limparTudo() {
+  if (!rotaAtualId) {
+    alert("Nenhuma rota ativa para limpar.");
+    return;
+  }
+
+  const confirmar = confirm("Tem certeza que deseja apagar todos os pontos desta rota?");
+
+  if (!confirmar) return;
+
+  const { error } = await supabaseClient
+    .from("pontos_coleta")
+    .delete()
+    .eq("rota_id", rotaAtualId);
+
+  if (error) {
+    alert("Erro ao limpar rota: " + error.message);
+    return;
+  }
+
+  listarPontos();
+}
+
+function traduzirStatus(status) {
+  if (status === "coletado") return "Coletado";
+  if (status === "ausente") return "Ausente";
+  return "Pendente";
+}
+
+function irMotorista() {
+  window.location.href = "motorista.html";
+}
+
+function sair() {
+  localStorage.removeItem("usuarioLogado");
+  window.location.href = "index.html";
+}
+
+async function iniciarPagina() {
+  await carregarRotaAtual();
+  iniciarMapa();
+  listarPontos();
+}
+
+iniciarPagina();
