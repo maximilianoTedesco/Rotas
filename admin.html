@@ -33,6 +33,20 @@
 
       <label>Horário inicial</label>
       <input type="time" id="horarioInicio" />
+      <label>Destino final</label>
+<input
+  type="text"
+  id="destinoNome"
+  placeholder="Ex: Tivoli Carvoeiro"
+/>
+
+<label>Coordenadas do destino final</label>
+<input
+  type="text"
+  id="destinoCoordenadas"
+  readonly
+  placeholder="Clique em 'Selecionar destino' e depois no mapa"
+/>
 
       <button class="btn-verde" onclick="salvarRota()">Salvar / Atualizar rota</button>
 
@@ -48,9 +62,23 @@
       <label>Coordenadas selecionadas</label>
       <input type="text" id="coordenadas" readonly placeholder="Clique no mapa para selecionar" />
 
-      <label>Selecionar ponto no mapa</label>
-      <div id="map"></div>
+      <label>Selecionar no mapa</label>
 
+<div class="top-actions">
+  <button class="btn-azul" onclick="setModoMapa('coleta')">
+    Selecionar ponto de coleta
+  </button>
+
+  <button class="btn-cinza" onclick="setModoMapa('destino')">
+    Selecionar destino final
+  </button>
+</div>
+
+<p class="aviso" id="modoMapaTexto">
+  Modo atual: ponto de coleta
+</p>
+
+<div id="map"></div>
       <label>Quantidade de passageiros</label>
       <input type="number" id="qtdPassageiros" min="1" placeholder="Ex: 4" />
 
