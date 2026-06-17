@@ -6,8 +6,21 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let mapa;
 let marcador;
 let rotaAtualId = null;
+let modoMapa = "coleta";
 
 verificarLogin();
+
+function setModoMapa(modo) {
+  modoMapa = modo;
+
+  const texto = document.getElementById("modoMapaTexto");
+
+  if (modo === "destino") {
+    texto.textContent = "Modo atual: destino final";
+  } else {
+    texto.textContent = "Modo atual: ponto de coleta";
+  }
+}
 
 function verificarLogin() {
   const usuario = localStorage.getItem("usuarioLogado");
@@ -21,21 +34,32 @@ async function salvarRota() {
   const nome = document.getElementById("nomeRota").value.trim();
   const data = document.getElementById("dataRota").value;
   const horarioInicio = document.getElementById("horarioInicio").value;
+  const destinoNome = document.getElementById("destinoNome").value.trim();
+  const destinoCoordenadas = document.getElementById("destinoCoordenadas").value.trim();
 
-  if (!nome || !data || !horarioInicio) {
-    alert("Preencha nome da rota, data e horário inicial.");
+  if (!nome || !data || !horarioInicio || !destinoNome || !destinoCoordenadas) {
+    alert("Preencha nome da rota, data, horário inicial e destino final.");
     return;
   }
+
+  const partesDestino = destinoCoordenadas.split(",");
+  const destinoLatitude = Number(partesDestino[0].trim());
+  const destinoLongitude = Number(partesDestino[1].trim());
+
+  const dadosRota = {
+    nome,
+    data,
+    horario_inicio: horarioInicio,
+    destino_nome: destinoNome,
+    destino_latitude: destinoLatitude,
+    destino_longitude: destinoLongitude,
+    status: "ativa"
+  };
 
   if (rotaAtualId) {
     const { error } = await supabaseClient
       .from("rotas")
-      .update({
-        nome,
-        data,
-        horario_inicio: horarioInicio,
-        status: "ativa"
-      })
+      .update(dadosRota)
       .eq("id", rotaAtualId);
 
     if (error) {
@@ -47,12 +71,7 @@ async function salvarRota() {
   } else {
     const { data: rotaCriada, error } = await supabaseClient
       .from("rotas")
-      .insert({
-        nome,
-        data,
-        horario_inicio: horarioInicio,
-        status: "ativa"
-      })
+      .insert(dadosRota)
       .select()
       .single();
 
@@ -109,6 +128,12 @@ async function carregarRotaAtual() {
   document.getElementById("nomeRota").value = rota.nome || "";
   document.getElementById("dataRota").value = rota.data || "";
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
+  document.getElementById("destinoNome").value = rota.destino_nome || "";
+
+if (rota.destino_latitude && rota.destino_longitude) {
+  document.getElementById("destinoCoordenadas").value =
+    `${rota.destino_latitude}, ${rota.destino_longitude}`;
+}
 
   atualizarTextoRota();
 }
@@ -136,21 +161,24 @@ function iniciarMapa() {
     mapa.invalidateSize();
   }, 500);
 
-  mapa.on("click", function (e) {
-    const lat = e.latlng.lat;
-    const lng = e.latlng.lng;
+mapa.on("click", function (e) {
+  const lat = e.latlng.lat;
+  const lng = e.latlng.lng;
+  const coordenada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-    document.getElementById("coordenadas").value =
-      `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  if (modoMapa === "destino") {
+    document.getElementById("destinoCoordenadas").value = coordenada;
+  } else {
+    document.getElementById("coordenadas").value = coordenada;
+  }
 
-    if (marcador) {
-      mapa.removeLayer(marcador);
-    }
+  if (marcador) {
+    mapa.removeLayer(marcador);
+  }
 
-    marcador = L.marker([lat, lng]).addTo(mapa);
-  });
-}
-
+  marcador = L.marker([lat, lng]).addTo(mapa);
+});
+  
 async function adicionarPonto() {
   if (!rotaAtualId) {
     alert("Salve primeiro os dados da rota.");
