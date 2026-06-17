@@ -1,5 +1,5 @@
-const SUPABASE_URL = "COLE_AQUI_SUA_SUPABASE_URL";
-const SUPABASE_KEY = "COLE_AQUI_SUA_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
+const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -82,6 +82,7 @@ async function listarPontosMotorista() {
   }
 
   mostrarProximoPonto(pontos);
+  mostrarRotaCompleta(pontos);
 
   lista.innerHTML = "";
 
@@ -170,3 +171,50 @@ function sair() {
 }
 
 carregarRotaMotorista();
+
+function mostrarRotaCompleta(pontos) {
+  const box = document.getElementById("rotaCompletaBox");
+
+  if (
+    !rotaAtual ||
+    !rotaAtual.destino_latitude ||
+    !rotaAtual.destino_longitude ||
+    pontos.length === 0
+  ) {
+    box.innerHTML = "";
+    return;
+  }
+
+  const primeiroPonto = pontos[0];
+
+  const origem = `${primeiroPonto.latitude},${primeiroPonto.longitude}`;
+  const destino = `${rotaAtual.destino_latitude},${rotaAtual.destino_longitude}`;
+
+  const waypoints = pontos
+    .slice(1)
+    .map(ponto => `${ponto.latitude},${ponto.longitude}`)
+    .join("|");
+
+  let linkRotaCompleta =
+    `https://www.google.com/maps/dir/?api=1` +
+    `&origin=${origem}` +
+    `&destination=${destino}`;
+
+  if (waypoints) {
+    linkRotaCompleta += `&waypoints=${waypoints}`;
+  }
+
+  box.innerHTML = `
+    <div class="proximo-box">
+      <h2>Rota completa</h2>
+      <p><strong>Destino final:</strong> ${rotaAtual.destino_nome || "Não informado"}</p>
+      <p><strong>Total de paradas:</strong> ${pontos.length}</p>
+
+      <div class="botoes">
+        <button class="btn-maps" onclick="abrirMaps('${linkRotaCompleta}')">
+          Abrir rota completa no Google Maps
+        </button>
+      </div>
+    </div>
+  `;
+}
