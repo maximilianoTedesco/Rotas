@@ -11,6 +11,11 @@ body {
   padding: 16px;
 }
 
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
 header {
   background: #0f172a;
   color: white;
@@ -23,17 +28,16 @@ header h1 {
   margin-bottom: 6px;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-}
-
 .card {
   background: white;
   border-radius: 18px;
   padding: 18px;
   margin-bottom: 18px;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+h2 {
+  margin-bottom: 16px;
 }
 
 label {
@@ -93,6 +97,23 @@ button {
   color: white;
 }
 
+.top-actions,
+.acoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#map {
+  height: 400px;
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+}
+
 .ponto {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -110,27 +131,10 @@ button {
   color: #334155;
 }
 
-.acoes {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.aviso {
   margin-top: 10px;
-}
-
-.top-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-
-#map {
-  height: 400px;
-  width: 100%;
-  border-radius: 12px;
-  margin-bottom: 15px;
-  border: 1px solid #cbd5e1;
-  overflow: hidden;
+  color: #475569;
+  font-size: 14px;
 }
 
 @media (max-width: 600px) {
