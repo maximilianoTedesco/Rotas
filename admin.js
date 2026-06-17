@@ -8,25 +8,45 @@ let marcador;
 let rotaAtualId = null;
 let modoMapa = "coleta";
 
-verificarLogin();
+async function verificarLogin() {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session) {
+    window.location.href = "index.html";
+    return false;
+  }
+
+  const userId = sessionData.session.user.id;
+
+  const { data: perfil, error } = await supabaseClient
+    .from("perfis")
+    .select("*")
+    .eq("id", userId)
+    .eq("ativo", true)
+    .single();
+
+  if (error || !perfil || perfil.perfil !== "admin") {
+    await supabaseClient.auth.signOut();
+    localStorage.clear();
+    window.location.href = "index.html";
+    return false;
+  }
+
+  localStorage.setItem("usuarioLogado", "admin");
+  return true;
+}
 
 function setModoMapa(modo) {
   modoMapa = modo;
 
   const texto = document.getElementById("modoMapaTexto");
 
+  if (!texto) return;
+
   if (modo === "destino") {
     texto.textContent = "Modo atual: destino final";
   } else {
     texto.textContent = "Modo atual: ponto de coleta";
-  }
-}
-
-function verificarLogin() {
-  const usuario = localStorage.getItem("usuarioLogado");
-
-  if (usuario !== "admin") {
-    window.location.href = "index.html";
   }
 }
 
@@ -111,7 +131,7 @@ async function carregarRotaAtual() {
   const { data, error } = await query;
 
   if (error) {
-    console.error(error);
+    console.error("Erro ao carregar rota:", error);
     return;
   }
 
@@ -130,10 +150,10 @@ async function carregarRotaAtual() {
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
   document.getElementById("destinoNome").value = rota.destino_nome || "";
 
-if (rota.destino_latitude && rota.destino_longitude) {
-  document.getElementById("destinoCoordenadas").value =
-    `${rota.destino_latitude}, ${rota.destino_longitude}`;
-}
+  if (rota.destino_latitude && rota.destino_longitude) {
+    document.getElementById("destinoCoordenadas").value =
+      `${rota.destino_latitude}, ${rota.destino_longitude}`;
+  }
 
   atualizarTextoRota();
 }
@@ -141,8 +161,11 @@ if (rota.destino_latitude && rota.destino_longitude) {
 function atualizarTextoRota() {
   const texto = document.getElementById("rotaAtualTexto");
 
+  if (!texto) return;
+
   if (!rotaAtualId) {
-    texto.textContent = "Nenhuma rota carregada. Salve os dados da rota antes de adicionar pontos.";
+    texto.textContent =
+      "Nenhuma rota carregada. Salve os dados da rota antes de adicionar pontos.";
     return;
   }
 
@@ -150,6 +173,11 @@ function atualizarTextoRota() {
 }
 
 function iniciarMapa() {
+  if (!document.getElementById("map")) {
+    console.error("Elemento #map não encontrado no HTML.");
+    return;
+  }
+
   mapa = L.map("map").setView([37.1365, -8.5377], 13);
 
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -161,24 +189,25 @@ function iniciarMapa() {
     mapa.invalidateSize();
   }, 500);
 
-mapa.on("click", function (e) {
-  const lat = e.latlng.lat;
-  const lng = e.latlng.lng;
-  const coordenada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  mapa.on("click", function (e) {
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
+    const coordenada = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
-  if (modoMapa === "destino") {
-    document.getElementById("destinoCoordenadas").value = coordenada;
-  } else {
-    document.getElementById("coordenadas").value = coordenada;
-  }
+    if (modoMapa === "destino") {
+      document.getElementById("destinoCoordenadas").value = coordenada;
+    } else {
+      document.getElementById("coordenadas").value = coordenada;
+    }
 
-  if (marcador) {
-    mapa.removeLayer(marcador);
-  }
+    if (marcador) {
+      mapa.removeLayer(marcador);
+    }
 
-  marcador = L.marker([lat, lng]).addTo(mapa);
-});
-  
+    marcador = L.marker([lat, lng]).addTo(mapa);
+  });
+}
+
 async function adicionarPonto() {
   if (!rotaAtualId) {
     alert("Salve primeiro os dados da rota.");
@@ -192,7 +221,7 @@ async function adicionarPonto() {
   const observacao = document.getElementById("observacao").value.trim();
 
   if (!coordenadas) {
-    alert("Selecione um ponto no mapa.");
+    alert("Selecione um ponto de coleta no mapa.");
     return;
   }
 
@@ -245,7 +274,7 @@ async function buscarPontos() {
     .order("ordem", { ascending: true });
 
   if (error) {
-    console.error(error);
+    console.error("Erro ao buscar pontos:", error);
     return [];
   }
 
@@ -255,6 +284,8 @@ async function buscarPontos() {
 async function listarPontos() {
   const pontos = await buscarPontos();
   const lista = document.getElementById("listaPontos");
+
+  if (!lista) return;
 
   if (pontos.length === 0) {
     lista.innerHTML = "<p>Nenhum ponto cadastrado ainda.</p>";
@@ -333,15 +364,17 @@ async function exportarCSV() {
   const rota = {
     nome: document.getElementById("nomeRota").value,
     data: document.getElementById("dataRota").value,
-    horarioInicio: document.getElementById("horarioInicio").value
+    horarioInicio: document.getElementById("horarioInicio").value,
+    destinoNome: document.getElementById("destinoNome").value
   };
 
-  let csv = "Rota,Data,Horario Inicial,Ordem,Ponto,Horario,Passageiros,Latitude,Longitude,Status,Observacao,Google Maps\n";
+  let csv =
+    "Rota,Data,Horario Inicial,Destino Final,Ordem,Ponto,Horario,Passageiros,Latitude,Longitude,Status,Observacao,Google Maps\n";
 
   pontos.forEach((ponto, index) => {
     const maps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}`;
 
-    csv += `"${rota.nome}","${rota.data}","${rota.horarioInicio}","${index + 1}","${ponto.nome_ponto}","${ponto.horario_previsto}","${ponto.qtd_passageiros}","${ponto.latitude}","${ponto.longitude}","${ponto.status}","${ponto.observacao || ""}","${maps}"\n`;
+    csv += `"${rota.nome}","${rota.data}","${rota.horarioInicio}","${rota.destinoNome}","${index + 1}","${ponto.nome_ponto}","${ponto.horario_previsto}","${ponto.qtd_passageiros}","${ponto.latitude}","${ponto.longitude}","${ponto.status}","${ponto.observacao || ""}","${maps}"\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -385,17 +418,20 @@ function irMotorista() {
   window.location.href = "motorista.html";
 }
 
-function sair() {
-  localStorage.removeItem("usuarioLogado");
+async function sair() {
+  await supabaseClient.auth.signOut();
+  localStorage.clear();
   window.location.href = "index.html";
 }
 
 async function iniciarPagina() {
+  const autorizado = await verificarLogin();
+
+  if (!autorizado) return;
+
   await carregarRotaAtual();
   iniciarMapa();
   listarPontos();
 }
 
 iniciarPagina();
-
-
