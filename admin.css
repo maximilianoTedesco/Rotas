@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1000px;
   margin: auto;
 }
 
@@ -36,6 +36,10 @@ header h1 {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+.card-motoristas {
+  border-left: 6px solid #2563eb;
+}
+
 h2 {
   margin-bottom: 16px;
 }
@@ -47,13 +51,15 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   padding: 13px;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
   margin-bottom: 14px;
   font-size: 16px;
+  background: white;
 }
 
 input[readonly] {
@@ -75,6 +81,10 @@ button {
   cursor: pointer;
   font-size: 15px;
   margin: 4px 0;
+}
+
+button:hover {
+  opacity: 0.9;
 }
 
 .btn-verde {
@@ -117,7 +127,8 @@ button {
   background: #e2e8f0;
 }
 
-.ponto {
+.ponto,
+.motorista-card {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 14px;
@@ -125,13 +136,25 @@ button {
   background: #f8fafc;
 }
 
-.ponto h3 {
+.ponto h3,
+.motorista-card h3 {
   margin-bottom: 8px;
 }
 
-.ponto p {
+.ponto p,
+.motorista-card p {
   margin-bottom: 5px;
   color: #334155;
+}
+
+.status-ativo {
+  color: #16a34a;
+  font-weight: bold;
+}
+
+.status-inativo {
+  color: #dc2626;
+  font-weight: bold;
 }
 
 .aviso {
@@ -147,6 +170,12 @@ button {
   border-radius: 10px;
   font-weight: bold;
   margin-bottom: 12px;
+}
+
+.divisor {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 14px 0;
 }
 
 @media (max-width: 600px) {
