@@ -624,13 +624,13 @@ async function iniciarPagina() {
 async function carregarMotoristas() {
   const { data, error } = await supabaseClient
     .from("perfis")
-    .select("*")
-    .eq("perfil", "motorista")
+    .select("id, nome, email, perfil, ativo")
     .eq("ativo", true)
     .order("nome", { ascending: true });
 
   if (error) {
     console.error("Erro ao carregar motoristas:", error);
+    alert("Erro ao carregar motoristas: " + error.message);
     return;
   }
 
@@ -640,7 +640,9 @@ async function carregarMotoristas() {
 
   select.innerHTML = `<option value="">Selecione o motorista</option>`;
 
-  data.forEach((motorista) => {
+  const motoristas = (data || []).filter((item) => item.perfil === "motorista");
+
+  motoristas.forEach((motorista) => {
     const option = document.createElement("option");
     option.value = motorista.id;
     option.textContent = motorista.nome || motorista.email || "Motorista";
