@@ -36,8 +36,41 @@ header h1 {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
-.card-motoristas {
-  border-left: 6px solid #2563eb;
+.modulo-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.modulo-titulo {
+  width: 100%;
+  background: white;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  padding: 18px;
+  border-radius: 18px;
+  font-size: 18px;
+  margin: 0;
+}
+
+.modulo-titulo strong {
+  font-size: 22px;
+  transition: transform 0.2s ease;
+}
+
+.modulo-card.ativo .modulo-titulo strong {
+  transform: rotate(180deg);
+}
+
+.modulo-conteudo {
+  display: none;
+  padding: 0 18px 18px;
+}
+
+.modulo-card.ativo .modulo-conteudo {
+  display: block;
 }
 
 h2 {
@@ -107,14 +140,24 @@ button:hover {
   color: white;
 }
 
+.btn-amarelo {
+  background: #f59e0b;
+  color: white;
+}
+
 .top-actions,
 .acoes,
-.modo-mapa-box {
+.modo-mapa-box,
+.filtros-rotas {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
   margin-bottom: 12px;
+}
+
+.filtro-ativo {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
 }
 
 #map {
@@ -128,7 +171,8 @@ button:hover {
 }
 
 .ponto,
-.motorista-card {
+.motorista-card,
+.rota-card {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 14px;
@@ -137,23 +181,58 @@ button:hover {
 }
 
 .ponto h3,
-.motorista-card h3 {
+.motorista-card h3,
+.rota-card h3 {
   margin-bottom: 8px;
 }
 
 .ponto p,
-.motorista-card p {
+.motorista-card p,
+.rota-card p {
   margin-bottom: 5px;
   color: #334155;
 }
 
-.status-ativo {
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.mini-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.mini-card span {
+  display: block;
+  color: #475569;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.mini-card strong {
+  display: block;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.status-ativo,
+.status-ativa {
   color: #16a34a;
   font-weight: bold;
 }
 
-.status-inativo {
+.status-inativo,
+.status-cancelada {
   color: #dc2626;
+  font-weight: bold;
+}
+
+.status-finalizada {
+  color: #2563eb;
   font-weight: bold;
 }
 
@@ -178,6 +257,12 @@ button:hover {
   margin: 14px 0;
 }
 
+@media (max-width: 800px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   body {
     padding: 10px;
@@ -186,6 +271,9 @@ button:hover {
   header,
   .card {
     border-radius: 14px;
+  }
+
+  header {
     padding: 15px;
   }
 
@@ -199,7 +287,16 @@ button:hover {
 
   .top-actions,
   .acoes,
-  .modo-mapa-box {
+  .modo-mapa-box,
+  .filtros-rotas {
     flex-direction: column;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modulo-titulo {
+    border-radius: 14px;
   }
 }
