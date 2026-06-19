@@ -8,6 +8,15 @@ let marcador;
 let rotaAtualId = null;
 let modoSelecao = "ponto";
 
+function textoSeguro(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function verificarLogin() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
 
@@ -71,6 +80,258 @@ function iniciarMapa() {
 function ativarModoDestino() {
   modoSelecao = "destino";
   alert("Agora clique no mapa para selecionar o destino final da rota.");
+}
+
+async function criarMotorista() {
+  const nome = document.getElementById("nomeMotorista").value.trim();
+  const email = document.getElementById("emailMotorista").value.trim();
+  const senha = document.getElementById("senhaMotorista").value.trim();
+
+  if (!nome || !email || !senha) {
+    alert("Preencha nome, e-mail e senha do motorista.");
+    return;
+  }
+
+  if (senha.length < 6) {
+    alert("A senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  const resposta = await fetch("/api/criar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nome,
+      email,
+      senha
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao criar motorista: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Motorista criado com sucesso!");
+
+  document.getElementById("nomeMotorista").value = "";
+  document.getElementById("emailMotorista").value = "";
+  document.getElementById("senhaMotorista").value = "";
+
+  await carregarMotoristas();
+  await listarMotoristas();
+}
+
+async function carregarMotoristas() {
+  const { data, error } = await supabaseClient
+    .from("perfis")
+    .select("id, nome, email, perfil, ativo")
+    .eq("perfil", "motorista")
+    .eq("ativo", true)
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar motoristas:", error);
+    alert("Erro ao carregar motoristas: " + error.message);
+    return;
+  }
+
+  const select = document.getElementById("motoristaRota");
+
+  if (!select) return;
+
+  const motoristaSelecionado = select.value;
+
+  select.innerHTML = `<option value="">Selecione o motorista</option>`;
+
+  if (!data || data.length === 0) {
+    select.innerHTML += `<option value="">Nenhum motorista ativo cadastrado</option>`;
+    return;
+  }
+
+  data.forEach((motorista) => {
+    const option = document.createElement("option");
+    option.value = motorista.id;
+    option.textContent = motorista.nome || motorista.email || "Motorista";
+    select.appendChild(option);
+  });
+
+  if (motoristaSelecionado) {
+    select.value = motoristaSelecionado;
+  }
+}
+
+async function listarMotoristas() {
+  const { data, error } = await supabaseClient
+    .from("perfis")
+    .select("id, nome, email, perfil, ativo")
+    .eq("perfil", "motorista")
+    .order("nome", { ascending: true });
+
+  const lista = document.getElementById("listaMotoristas");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (error) {
+    lista.innerHTML = `<p>Erro ao listar motoristas: ${textoSeguro(error.message)}</p>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    lista.innerHTML = "<p>Nenhum motorista cadastrado.</p>";
+    return;
+  }
+
+  data.forEach((motorista) => {
+    const div = document.createElement("div");
+    div.className = "motorista-card";
+
+    div.innerHTML = `
+      <h3>${textoSeguro(motorista.nome || "Sem nome")}</h3>
+      <p><strong>E-mail:</strong> ${textoSeguro(motorista.email || "Sem e-mail")}</p>
+      <p>
+        <strong>Status:</strong>
+        <span class="${motorista.ativo ? "status-ativo" : "status-inativo"}">
+          ${motorista.ativo ? "Ativo" : "Inativo"}
+        </span>
+      </p>
+
+      <div class="divisor"></div>
+
+      <label>Nome</label>
+      <input type="text" id="nome_${motorista.id}" value="${textoSeguro(motorista.nome || "")}" />
+
+      <label>E-mail</label>
+      <input type="email" id="email_${motorista.id}" value="${textoSeguro(motorista.email || "")}" />
+
+      <button type="button" class="btn-azul" onclick="editarMotorista('${motorista.id}')">
+        Salvar alterações
+      </button>
+
+      <div class="divisor"></div>
+
+      <label>Nova senha</label>
+      <input type="password" id="senha_${motorista.id}" placeholder="Nova senha com mínimo 6 caracteres" />
+
+      <button type="button" class="btn-cinza" onclick="alterarSenhaMotorista('${motorista.id}')">
+        Alterar senha
+      </button>
+
+      <button type="button" class="${motorista.ativo ? "btn-vermelho" : "btn-verde"}"
+        onclick="alterarStatusMotorista('${motorista.id}', ${!motorista.ativo})">
+        ${motorista.ativo ? "Inativar motorista" : "Ativar motorista"}
+      </button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+async function editarMotorista(id) {
+  const nome = document.getElementById(`nome_${id}`).value.trim();
+  const email = document.getElementById(`email_${id}`).value.trim();
+
+  if (!nome || !email) {
+    alert("Nome e e-mail são obrigatórios.");
+    return;
+  }
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "editar",
+      id,
+      nome,
+      email
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao editar motorista: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Motorista atualizado com sucesso!");
+
+  await carregarMotoristas();
+  await listarMotoristas();
+}
+
+async function alterarSenhaMotorista(id) {
+  const senha = document.getElementById(`senha_${id}`).value.trim();
+
+  if (!senha || senha.length < 6) {
+    alert("A nova senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "senha",
+      id,
+      senha
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao alterar senha: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Senha alterada com sucesso!");
+
+  document.getElementById(`senha_${id}`).value = "";
+}
+
+async function alterarStatusMotorista(id, ativo) {
+  const confirmar = confirm(
+    ativo
+      ? "Deseja ativar este motorista?"
+      : "Deseja inativar este motorista?"
+  );
+
+  if (!confirmar) return;
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "status",
+      id,
+      ativo
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao alterar status: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Status alterado com sucesso!");
+
+  await carregarMotoristas();
+  await listarMotoristas();
 }
 
 async function salvarPontoBase() {
@@ -148,8 +409,8 @@ async function carregarPontosBase() {
     div.className = "ponto";
 
     div.innerHTML = `
-      <h3>${ponto.nome}</h3>
-      <p><strong>Endereço:</strong> ${ponto.endereco || "Não informado"}</p>
+      <h3>${textoSeguro(ponto.nome)}</h3>
+      <p><strong>Endereço:</strong> ${textoSeguro(ponto.endereco || "Não informado")}</p>
       <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
 
       <div class="acoes">
@@ -283,12 +544,17 @@ async function carregarRotaAtual() {
   document.getElementById("nomeRota").value = rota.nome || "";
   document.getElementById("dataRota").value = rota.data || "";
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
-  document.getElementById("motoristaRota").value = rota.motorista_id || "";
   document.getElementById("destinoNome").value = rota.destino_nome || "";
 
   if (rota.destino_latitude && rota.destino_longitude) {
     document.getElementById("destinoCoordenadas").value =
       `${rota.destino_latitude}, ${rota.destino_longitude}`;
+  }
+
+  await carregarMotoristas();
+
+  if (rota.motorista_id) {
+    document.getElementById("motoristaRota").value = rota.motorista_id;
   }
 
   atualizarTextoRota();
@@ -399,13 +665,13 @@ async function listarPontosRota() {
     div.className = "ponto";
 
     div.innerHTML = `
-      <h3>${index + 1}. ${ponto.nome}</h3>
+      <h3>${index + 1}. ${textoSeguro(ponto.nome)}</h3>
       <p><strong>Horário:</strong> ${item.horario_previsto || "Não informado"}</p>
       <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
-      <p><strong>Endereço:</strong> ${ponto.endereco || "Não informado"}</p>
+      <p><strong>Endereço:</strong> ${textoSeguro(ponto.endereco || "Não informado")}</p>
       <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
       <p><strong>Status:</strong> ${traduzirStatus(item.status)}</p>
-      <p><strong>Observação:</strong> ${item.observacao || "Sem observação"}</p>
+      <p><strong>Observação:</strong> ${textoSeguro(item.observacao || "Sem observação")}</p>
 
       <div class="acoes">
         <button class="btn-azul" onclick="abrirMaps('${linkMaps}')">
@@ -566,249 +832,18 @@ async function sair() {
   window.location.href = "index.html";
 }
 
-async function listarMotoristas() {
-  const { data, error } = await supabaseClient
-    .from("perfis")
-    .select("id, nome, email, perfil, ativo")
-    .eq("perfil", "motorista")
-    .order("nome", { ascending: true });
-
-  if (error) {
-    alert("Erro ao listar motoristas: " + error.message);
-    return;
-  }
-
-  const lista = document.getElementById("listaMotoristas");
-
-  if (!lista) return;
-
-  lista.innerHTML = "";
-
-  if (!data || data.length === 0) {
-    lista.innerHTML = "<p>Nenhum motorista cadastrado.</p>";
-    return;
-  }
-
-  data.forEach((motorista) => {
-    const div = document.createElement("div");
-    div.className = "ponto";
-
-    div.innerHTML = `
-      <h3>${motorista.nome || "Sem nome"}</h3>
-      <p><strong>E-mail:</strong> ${motorista.email || "Sem e-mail"}</p>
-      <p><strong>Status:</strong> ${motorista.ativo ? "Ativo" : "Inativo"}</p>
-
-      <label>Nome</label>
-      <input type="text" id="nome_${motorista.id}" value="${motorista.nome || ""}" />
-
-      <label>E-mail</label>
-      <input type="email" id="email_${motorista.id}" value="${motorista.email || ""}" />
-
-      <button type="button" class="btn-azul" onclick="editarMotorista('${motorista.id}')">
-        Salvar alterações
-      </button>
-
-      <label>Nova senha</label>
-      <input type="password" id="senha_${motorista.id}" placeholder="Nova senha" />
-
-      <button type="button" class="btn-cinza" onclick="alterarSenhaMotorista('${motorista.id}')">
-        Alterar senha
-      </button>
-
-      <button type="button" class="${motorista.ativo ? "btn-vermelho" : "btn-verde"}"
-        onclick="alterarStatusMotorista('${motorista.id}', ${!motorista.ativo})">
-        ${motorista.ativo ? "Inativar motorista" : "Ativar motorista"}
-      </button>
-    `;
-
-    lista.appendChild(div);
-  });
-}
-
-async function editarMotorista(id) {
-  const nome = document.getElementById(`nome_${id}`).value.trim();
-  const email = document.getElementById(`email_${id}`).value.trim();
-
-  if (!nome || !email) {
-    alert("Nome e e-mail são obrigatórios.");
-    return;
-  }
-
-  const resposta = await fetch("/api/gerenciar-motorista", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      acao: "editar",
-      id,
-      nome,
-      email
-    })
-  });
-
-  const resultado = await resposta.json();
-
-  if (!resposta.ok) {
-    alert("Erro ao editar motorista: " + (resultado.error || "erro desconhecido"));
-    return;
-  }
-
-  alert("Motorista atualizado com sucesso!");
-
-  await carregarMotoristas();
-  await listarMotoristas();
-}
-
-async function alterarSenhaMotorista(id) {
-  const senha = document.getElementById(`senha_${id}`).value.trim();
-
-  if (!senha || senha.length < 6) {
-    alert("A nova senha precisa ter pelo menos 6 caracteres.");
-    return;
-  }
-
-  const resposta = await fetch("/api/gerenciar-motorista", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      acao: "senha",
-      id,
-      senha
-    })
-  });
-
-  const resultado = await resposta.json();
-
-  if (!resposta.ok) {
-    alert("Erro ao alterar senha: " + (resultado.error || "erro desconhecido"));
-    return;
-  }
-
-  alert("Senha alterada com sucesso!");
-
-  document.getElementById(`senha_${id}`).value = "";
-}
-
-async function alterarStatusMotorista(id, ativo) {
-  const confirmar = confirm(
-    ativo
-      ? "Deseja ativar este motorista?"
-      : "Deseja inativar este motorista?"
-  );
-
-  if (!confirmar) return;
-
-  const resposta = await fetch("/api/gerenciar-motorista", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      acao: "status",
-      id,
-      ativo
-    })
-  });
-
-  const resultado = await resposta.json();
-
-  if (!resposta.ok) {
-    alert("Erro ao alterar status: " + (resultado.error || "erro desconhecido"));
-    return;
-  }
-
-  alert("Status alterado com sucesso!");
-
-  await carregarMotoristas();
-  await listarMotoristas();
-}
-
 async function iniciarPagina() {
   const autorizado = await verificarLogin();
 
   if (!autorizado) return;
 
   iniciarMapa();
+
   await carregarMotoristas();
   await listarMotoristas();
   await carregarPontosBase();
   await carregarRotaAtual();
   await listarPontosRota();
-}
-  async function criarMotorista() {
-    const nome = document.getElementById("nomeMotorista").value.trim();
-    const email = document.getElementById("emailMotorista").value.trim();
-    const senha = document.getElementById("senhaMotorista").value.trim();
-  
-    if (!nome || !email || !senha) {
-      alert("Preencha nome, e-mail e senha do motorista.");
-      return;
-    }
-  
-    if (senha.length < 6) {
-      alert("A senha precisa ter pelo menos 6 caracteres.");
-      return;
-    }
-  
-    const resposta = await fetch("/api/criar-motorista", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        nome,
-        email,
-        senha
-      })
-    });
-  
-    const resultado = await resposta.json();
-  
-    if (!resposta.ok) {
-      alert("Erro ao criar motorista: " + (resultado.error || "erro desconhecido"));
-      return;
-    }
-  
-    alert("Motorista criado com sucesso!");
-  
-    document.getElementById("nomeMotorista").value = "";
-    document.getElementById("emailMotorista").value = "";
-    document.getElementById("senhaMotorista").value = "";
-  
-    await carregarMotoristas();
-    await listarMotoristas();
-  }
-
-async function carregarMotoristas() {
-  const { data, error } = await supabaseClient
-    .from("perfis")
-    .select("id, nome, email, perfil, ativo")
-    .eq("ativo", true)
-    .order("nome", { ascending: true });
-
-  if (error) {
-    console.error("Erro ao carregar motoristas:", error);
-    alert("Erro ao carregar motoristas: " + error.message);
-    return;
-  }
-
-  const select = document.getElementById("motoristaRota");
-
-  if (!select) return;
-
-  select.innerHTML = `<option value="">Selecione o motorista</option>`;
-
-  const motoristas = (data || []).filter((item) => item.perfil === "motorista");
-
-  motoristas.forEach((motorista) => {
-    const option = document.createElement("option");
-    option.value = motorista.id;
-    option.textContent = motorista.nome || motorista.email || "Motorista";
-    select.appendChild(option);
-  });
 }
 
 iniciarPagina();
