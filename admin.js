@@ -566,6 +566,166 @@ async function sair() {
   window.location.href = "index.html";
 }
 
+async function listarMotoristas() {
+  const { data, error } = await supabaseClient
+    .from("perfis")
+    .select("id, nome, email, perfil, ativo")
+    .eq("perfil", "motorista")
+    .order("nome", { ascending: true });
+
+  if (error) {
+    alert("Erro ao listar motoristas: " + error.message);
+    return;
+  }
+
+  const lista = document.getElementById("listaMotoristas");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    lista.innerHTML = "<p>Nenhum motorista cadastrado.</p>";
+    return;
+  }
+
+  data.forEach((motorista) => {
+    const div = document.createElement("div");
+    div.className = "ponto";
+
+    div.innerHTML = `
+      <h3>${motorista.nome || "Sem nome"}</h3>
+      <p><strong>E-mail:</strong> ${motorista.email || "Sem e-mail"}</p>
+      <p><strong>Status:</strong> ${motorista.ativo ? "Ativo" : "Inativo"}</p>
+
+      <label>Nome</label>
+      <input type="text" id="nome_${motorista.id}" value="${motorista.nome || ""}" />
+
+      <label>E-mail</label>
+      <input type="email" id="email_${motorista.id}" value="${motorista.email || ""}" />
+
+      <button type="button" class="btn-azul" onclick="editarMotorista('${motorista.id}')">
+        Salvar alterações
+      </button>
+
+      <label>Nova senha</label>
+      <input type="password" id="senha_${motorista.id}" placeholder="Nova senha" />
+
+      <button type="button" class="btn-cinza" onclick="alterarSenhaMotorista('${motorista.id}')">
+        Alterar senha
+      </button>
+
+      <button type="button" class="${motorista.ativo ? "btn-vermelho" : "btn-verde"}"
+        onclick="alterarStatusMotorista('${motorista.id}', ${!motorista.ativo})">
+        ${motorista.ativo ? "Inativar motorista" : "Ativar motorista"}
+      </button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+async function editarMotorista(id) {
+  const nome = document.getElementById(`nome_${id}`).value.trim();
+  const email = document.getElementById(`email_${id}`).value.trim();
+
+  if (!nome || !email) {
+    alert("Nome e e-mail são obrigatórios.");
+    return;
+  }
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "editar",
+      id,
+      nome,
+      email
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao editar motorista: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Motorista atualizado com sucesso!");
+
+  await carregarMotoristas();
+  await listarMotoristas();
+}
+
+async function alterarSenhaMotorista(id) {
+  const senha = document.getElementById(`senha_${id}`).value.trim();
+
+  if (!senha || senha.length < 6) {
+    alert("A nova senha precisa ter pelo menos 6 caracteres.");
+    return;
+  }
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "senha",
+      id,
+      senha
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao alterar senha: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Senha alterada com sucesso!");
+
+  document.getElementById(`senha_${id}`).value = "";
+}
+
+async function alterarStatusMotorista(id, ativo) {
+  const confirmar = confirm(
+    ativo
+      ? "Deseja ativar este motorista?"
+      : "Deseja inativar este motorista?"
+  );
+
+  if (!confirmar) return;
+
+  const resposta = await fetch("/api/gerenciar-motorista", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      acao: "status",
+      id,
+      ativo
+    })
+  });
+
+  const resultado = await resposta.json();
+
+  if (!resposta.ok) {
+    alert("Erro ao alterar status: " + (resultado.error || "erro desconhecido"));
+    return;
+  }
+
+  alert("Status alterado com sucesso!");
+
+  await carregarMotoristas();
+  await listarMotoristas();
+}
+
 async function iniciarPagina() {
   const autorizado = await verificarLogin();
 
@@ -573,11 +733,11 @@ async function iniciarPagina() {
 
   iniciarMapa();
   await carregarMotoristas();
+  await listarMotoristas();
   await carregarPontosBase();
   await carregarRotaAtual();
   await listarPontosRota();
 }
-
   async function criarMotorista() {
     const nome = document.getElementById("nomeMotorista").value.trim();
     const email = document.getElementById("emailMotorista").value.trim();
@@ -619,6 +779,7 @@ async function iniciarPagina() {
     document.getElementById("senhaMotorista").value = "";
   
     await carregarMotoristas();
+    await listarMotoristas();
   }
 
 async function carregarMotoristas() {
