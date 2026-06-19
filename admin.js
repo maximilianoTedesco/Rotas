@@ -185,11 +185,12 @@ async function salvarRota() {
   const nome = document.getElementById("nomeRota").value.trim();
   const data = document.getElementById("dataRota").value;
   const horarioInicio = document.getElementById("horarioInicio").value;
+  const motoristaId = document.getElementById("motoristaRota").value;
   const destinoNome = document.getElementById("destinoNome").value.trim();
   const destinoCoordenadas = document.getElementById("destinoCoordenadas").value.trim();
 
-  if (!nome || !data || !horarioInicio || !destinoNome || !destinoCoordenadas) {
-    alert("Preencha todos os dados da rota.");
+  if (!nome || !data || !horarioInicio || !motoristaId || !destinoNome || !destinoCoordenadas) {
+    alert("Preencha todos os dados da rota, incluindo o motorista.");
     return;
   }
 
@@ -201,6 +202,7 @@ async function salvarRota() {
     nome,
     data,
     horario_inicio: horarioInicio,
+    motorista_id: motoristaId,
     destino_nome: destinoNome,
     destino_latitude: destinoLatitude,
     destino_longitude: destinoLongitude,
@@ -281,6 +283,7 @@ async function carregarRotaAtual() {
   document.getElementById("nomeRota").value = rota.nome || "";
   document.getElementById("dataRota").value = rota.data || "";
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
+  document.getElementById("motoristaRota").value = rota.motorista_id || "";
   document.getElementById("destinoNome").value = rota.destino_nome || "";
 
   if (rota.destino_latitude && rota.destino_longitude) {
@@ -569,6 +572,7 @@ async function iniciarPagina() {
   if (!autorizado) return;
 
   iniciarMapa();
+  await carregarMotoristas();
   await carregarPontosBase();
   await carregarRotaAtual();
   await listarPontosRota();
