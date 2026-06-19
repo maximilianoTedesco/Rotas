@@ -578,6 +578,49 @@ async function iniciarPagina() {
   await listarPontosRota();
 }
 
+  async function criarMotorista() {
+    const nome = document.getElementById("nomeMotorista").value.trim();
+    const email = document.getElementById("emailMotorista").value.trim();
+    const senha = document.getElementById("senhaMotorista").value.trim();
+  
+    if (!nome || !email || !senha) {
+      alert("Preencha nome, e-mail e senha do motorista.");
+      return;
+    }
+  
+    if (senha.length < 6) {
+      alert("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+  
+    const resposta = await fetch("/api/criar-motorista", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        nome,
+        email,
+        senha
+      })
+    });
+  
+    const resultado = await resposta.json();
+  
+    if (!resposta.ok) {
+      alert("Erro ao criar motorista: " + (resultado.error || "erro desconhecido"));
+      return;
+    }
+  
+    alert("Motorista criado com sucesso!");
+  
+    document.getElementById("nomeMotorista").value = "";
+    document.getElementById("emailMotorista").value = "";
+    document.getElementById("senhaMotorista").value = "";
+  
+    await carregarMotoristas();
+  }
+
 async function carregarMotoristas() {
   const { data, error } = await supabaseClient
     .from("perfis")
