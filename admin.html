@@ -14,7 +14,7 @@
   <div class="container">
     <header>
       <h1>Painel ADM</h1>
-      <p>Cadastro de pontos fixos e montagem de rotas</p>
+      <p>Cadastro de motoristas, pontos fixos e montagem de rotas</p>
 
       <div class="top-actions">
         <button type="button" class="btn-azul" onclick="irMotorista()">
@@ -26,28 +26,36 @@
         </button>
       </div>
     </header>
-    <section class="card">
-      <h2>Cadastrar motorista</h2>
-    
+
+    <section class="card card-motoristas">
+      <h2>🚐 Cadastrar motorista</h2>
+
       <label for="nomeMotorista">Nome do motorista</label>
       <input type="text" id="nomeMotorista" placeholder="Ex: João Silva" />
-    
+
       <label for="emailMotorista">E-mail do motorista</label>
       <input type="email" id="emailMotorista" placeholder="Ex: motorista@email.com" />
-    
+
       <label for="senhaMotorista">Senha provisória</label>
       <input type="password" id="senhaMotorista" placeholder="Mínimo 6 caracteres" />
-    
+
       <button type="button" class="btn-verde" onclick="criarMotorista()">
         Criar motorista
       </button>
-      </section>
-      <section class="card">
-        <h2>Gerenciar motoristas</h2>
-      
-        <div id="listaMotoristas"></div>
-      </section>
-      <section class="card">
+
+      <p class="aviso">
+        Após criar o motorista, ele poderá entrar pela tela de login usando o e-mail e a senha cadastrados.
+      </p>
+    </section>
+
+    <section class="card card-motoristas">
+      <h2>👥 Gerenciar motoristas</h2>
+      <div id="listaMotoristas">
+        <p>Carregando motoristas...</p>
+      </div>
+    </section>
+
+    <section class="card">
       <h2>1. Cadastrar ponto fixo</h2>
 
       <label for="nomePontoBase">Nome do ponto</label>
@@ -84,10 +92,11 @@
 
       <label for="horarioInicio">Horário inicial</label>
       <input type="time" id="horarioInicio" />
+
       <label for="motoristaRota">Motorista responsável</label>
-        <select id="motoristaRota">
-          <option value="">Selecione o motorista</option>
-        </select>
+      <select id="motoristaRota">
+        <option value="">Selecione o motorista</option>
+      </select>
 
       <label for="destinoNome">Destino final</label>
       <input type="text" id="destinoNome" placeholder="Ex: Tivoli Carvoeiro" />
