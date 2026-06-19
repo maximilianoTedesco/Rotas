@@ -13,15 +13,24 @@
   <div class="container">
     <header>
       <h1>Painel do Motorista</h1>
-      <div class="rota-info" id="rotaInfo">Carregando rota...</div>
 
-      <button class="btn-cinza" onclick="sair()">Sair</button>
+      <div class="rota-info" id="rotaInfo">
+        Carregando rota...
+      </div>
+
+      <button type="button" class="btn-cinza" onclick="sair()">
+        Sair
+      </button>
     </header>
 
     <section id="proximoPonto"></section>
+
     <section id="rotaCompletaBox"></section>
 
-    <section id="listaPontos"></section>
+    <section class="card">
+      <h2>Todos os pontos da rota</h2>
+      <div id="listaPontos"></div>
+    </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
