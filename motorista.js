@@ -34,50 +34,59 @@ async function verificarLogin() {
   await carregarRotaMotorista();
 }
 
-async function carregarRotaMotorista() {
-  const { data, error } = await supabaseClient
-    .from("rotas")
-    .select("*")
-    .eq("status", "ativa")
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (error) {
-    document.getElementById("rotaInfo").innerHTML = "Erro ao carregar rota.";
-    console.error(error);
-    return;
-  }
-
-  if (!data || data.length === 0) {
-    rotaAtual = null;
-
-    document.getElementById("rotaInfo").innerHTML =
-      "Nenhuma rota ativa encontrada.";
-
-    document.getElementById("proximoPonto").innerHTML = "";
-
-    document.getElementById("rotaCompletaBox").innerHTML = "";
-
-    document.getElementById("listaPontos").innerHTML = `
-      <div class="sem-pontos">
-        O ADM ainda não criou uma rota ativa.
-      </div>
+  async function carregarRotaMotorista() {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+  
+    if (!sessionData.session) {
+      window.location.href = "index.html";
+      return;
+    }
+  
+    const motoristaId = sessionData.session.user.id;
+  
+    const { data, error } = await supabaseClient
+      .from("rotas")
+      .select("*")
+      .eq("status", "ativa")
+      .eq("motorista_id", motoristaId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+  
+    if (error) {
+      document.getElementById("rotaInfo").innerHTML = "Erro ao carregar rota.";
+      console.error(error);
+      return;
+    }
+  
+    if (!data || data.length === 0) {
+      rotaAtual = null;
+  
+      document.getElementById("rotaInfo").innerHTML =
+        "Nenhuma rota ativa atribuída para este motorista.";
+  
+      document.getElementById("proximoPonto").innerHTML = "";
+      document.getElementById("rotaCompletaBox").innerHTML = "";
+  
+      document.getElementById("listaPontos").innerHTML = `
+        <div class="sem-pontos">
+          O ADM ainda não atribuiu uma rota ativa para este motorista.
+        </div>
+      `;
+  
+      return;
+    }
+  
+    rotaAtual = data[0];
+  
+    document.getElementById("rotaInfo").innerHTML = `
+      <p><strong>Rota:</strong> ${rotaAtual.nome}</p>
+      <p><strong>Data:</strong> ${formatarData(rotaAtual.data)}</p>
+      <p><strong>Horário inicial:</strong> ${formatarHora(rotaAtual.horario_inicio)}</p>
+      <p><strong>Destino final:</strong> ${rotaAtual.destino_nome || "Não informado"}</p>
     `;
-
-    return;
+  
+    await listarPontosMotorista();
   }
-
-  rotaAtual = data[0];
-
-  document.getElementById("rotaInfo").innerHTML = `
-    <p><strong>Rota:</strong> ${rotaAtual.nome}</p>
-    <p><strong>Data:</strong> ${formatarData(rotaAtual.data)}</p>
-    <p><strong>Horário inicial:</strong> ${formatarHora(rotaAtual.horario_inicio)}</p>
-    <p><strong>Destino final:</strong> ${rotaAtual.destino_nome || "Não informado"}</p>
-  `;
-
-  await listarPontosMotorista();
-}
 
 async function buscarPontos() {
   if (!rotaAtual) return [];
