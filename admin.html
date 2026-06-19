@@ -6,11 +6,7 @@
 
   <title>ADM | Rotas Algarve</title>
 
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="admin.css" />
 </head>
 
@@ -18,7 +14,7 @@
   <div class="container">
     <header>
       <h1>Painel ADM</h1>
-      <p>Cadastro de rotas, pontos de coleta e destino final</p>
+      <p>Cadastro de pontos fixos e montagem de rotas</p>
 
       <div class="top-actions">
         <button type="button" class="btn-azul" onclick="irMotorista()">
@@ -32,14 +28,36 @@
     </header>
 
     <section class="card">
-      <h2>Dados da rota</h2>
+      <h2>1. Cadastrar ponto fixo</h2>
+
+      <label for="nomePontoBase">Nome do ponto</label>
+      <input type="text" id="nomePontoBase" placeholder="Ex: Paragem Praia da Rocha" />
+
+      <label for="enderecoPontoBase">Endereço / referência</label>
+      <input type="text" id="enderecoPontoBase" placeholder="Ex: Em frente à paragem principal" />
+
+      <label for="coordenadasPontoBase">Coordenadas</label>
+      <input type="text" id="coordenadasPontoBase" readonly placeholder="Clique no mapa para selecionar" />
+
+      <p class="aviso destaque">Clique no mapa para selecionar o ponto fixo.</p>
+
+      <div id="map"></div>
+
+      <button type="button" class="btn-verde" onclick="salvarPontoBase()">
+        Salvar ponto fixo
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>2. Pontos fixos cadastrados</h2>
+      <div id="listaPontosBase"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. Criar / atualizar rota</h2>
 
       <label for="nomeRota">Nome da rota</label>
-      <input
-        type="text"
-        id="nomeRota"
-        placeholder="Ex: Rota Manhã Portimão - Hotéis"
-      />
+      <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
 
       <label for="dataRota">Data</label>
       <input type="date" id="dataRota" />
@@ -48,98 +66,53 @@
       <input type="time" id="horarioInicio" />
 
       <label for="destinoNome">Destino final</label>
-      <input
-        type="text"
-        id="destinoNome"
-        placeholder="Ex: Tivoli Carvoeiro"
-      />
+      <input type="text" id="destinoNome" placeholder="Ex: Tivoli Carvoeiro" />
 
       <label for="destinoCoordenadas">Coordenadas do destino final</label>
-      <input
-        type="text"
-        id="destinoCoordenadas"
-        readonly
-        placeholder="Clique em 'Selecionar destino final' e depois no mapa"
-      />
+      <input type="text" id="destinoCoordenadas" readonly placeholder="Use o botão abaixo e clique no mapa" />
 
-      <button type="button" class="btn-verde" onclick="salvarRota()">
-        Salvar / Atualizar rota
+      <button type="button" class="btn-cinza" onclick="ativarModoDestino()">
+        Selecionar destino final no mapa
       </button>
 
-      <p class="aviso" id="rotaAtualTexto">
-        Nenhuma rota carregada.
-      </p>
+      <button type="button" class="btn-verde" onclick="salvarRota()">
+        Salvar / atualizar rota
+      </button>
+
+      <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
     </section>
 
     <section class="card">
-      <h2>Adicionar ponto de coleta</h2>
+      <h2>4. Adicionar ponto cadastrado na rota</h2>
 
-      <label for="nomePonto">Nome do ponto</label>
-      <input
-        type="text"
-        id="nomePonto"
-        placeholder="Ex: Paragem Praia da Rocha"
-      />
-
-      <label for="coordenadas">Coordenadas selecionadas</label>
-      <input
-        type="text"
-        id="coordenadas"
-        readonly
-        placeholder="Clique em 'Selecionar ponto de coleta' e depois no mapa"
-      />
-
-      <label>Selecionar no mapa</label>
-
-      <div class="modo-mapa-box">
-        <button type="button" class="btn-azul" onclick="setModoMapa('coleta')">
-          Selecionar ponto de coleta
-        </button>
-
-        <button type="button" class="btn-cinza" onclick="setModoMapa('destino')">
-          Selecionar destino final
-        </button>
-      </div>
-
-      <p class="aviso destaque" id="modoMapaTexto">
-        Modo atual: ponto de coleta
-      </p>
-
-      <div id="map"></div>
-
-      <label for="qtdPassageiros">Quantidade de passageiros</label>
-      <input
-        type="number"
-        id="qtdPassageiros"
-        min="1"
-        placeholder="Ex: 4"
-      />
+      <label for="selectPontoBase">Ponto cadastrado</label>
+      <select id="selectPontoBase"></select>
 
       <label for="horarioPrevisto">Horário previsto</label>
       <input type="time" id="horarioPrevisto" />
 
-      <label for="observacao">Observação</label>
-      <textarea
-        id="observacao"
-        placeholder="Ex: esperar próximo à paragem principal"
-      ></textarea>
+      <label for="qtdPassageiros">Quantidade de passageiros</label>
+      <input type="number" id="qtdPassageiros" min="0" placeholder="Ex: 4" />
 
-      <button type="button" class="btn-verde" onclick="adicionarPonto()">
-        Adicionar ponto
+      <label for="observacao">Observação</label>
+      <textarea id="observacao" placeholder="Ex: esperar junto à paragem"></textarea>
+
+      <button type="button" class="btn-verde" onclick="adicionarPontoNaRota()">
+        Adicionar à rota
       </button>
     </section>
 
     <section class="card">
-      <h2>Pontos cadastrados</h2>
+      <h2>5. Rota montada</h2>
 
-      <div id="listaPontos"></div>
+      <div id="listaPontosRota"></div>
 
-      <button type="button" class="btn-azul" onclick="exportarCSV()">
-        Exportar Excel / CSV
+      <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
+        Abrir rota completa no Google Maps
       </button>
 
-      <button type="button" class="btn-vermelho" onclick="limparTudo()">
-        Limpar rota atual
+      <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
+        Limpar pontos desta rota
       </button>
     </section>
   </div>
