@@ -574,4 +574,31 @@ async function iniciarPagina() {
   await listarPontosRota();
 }
 
+async function carregarMotoristas() {
+  const { data, error } = await supabaseClient
+    .from("perfis")
+    .select("*")
+    .eq("perfil", "motorista")
+    .eq("ativo", true)
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar motoristas:", error);
+    return;
+  }
+
+  const select = document.getElementById("motoristaRota");
+
+  if (!select) return;
+
+  select.innerHTML = `<option value="">Selecione o motorista</option>`;
+
+  data.forEach((motorista) => {
+    const option = document.createElement("option");
+    option.value = motorista.id;
+    option.textContent = motorista.nome || motorista.email || "Motorista";
+    select.appendChild(option);
+  });
+}
+
 iniciarPagina();
