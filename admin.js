@@ -524,26 +524,20 @@ async function salvarRota() {
   const data = document.getElementById("dataRota").value;
   const horarioInicio = document.getElementById("horarioInicio").value;
   const motoristaId = document.getElementById("motoristaRota").value;
-  const destinoNome = document.getElementById("destinoNome").value.trim();
-  const destinoCoordenadas = document.getElementById("destinoCoordenadas").value.trim();
 
-  if (!nome || !data || !horarioInicio || !motoristaId || !destinoNome || !destinoCoordenadas) {
-    alert("Preencha todos os dados da rota, incluindo o motorista.");
+  if (!nome || !data || !horarioInicio || !motoristaId) {
+    alert("Preencha nome da rota, data, horário inicial e motorista.");
     return;
   }
-
-  const partes = destinoCoordenadas.split(",");
-  const destinoLatitude = Number(partes[0].trim());
-  const destinoLongitude = Number(partes[1].trim());
 
   const dadosRota = {
     nome,
     data,
     horario_inicio: horarioInicio,
     motorista_id: motoristaId,
-    destino_nome: destinoNome,
-    destino_latitude: destinoLatitude,
-    destino_longitude: destinoLongitude,
+    destino_nome: null,
+    destino_latitude: null,
+    destino_longitude: null,
     status: "ativa"
   };
 
@@ -574,7 +568,7 @@ async function salvarRota() {
     rotaAtualId = rotaCriada.id;
     localStorage.setItem("rotaAtualId", rotaAtualId);
 
-    alert("Rota criada com sucesso!");
+    alert("Rota criada com sucesso! Agora adicione os pontos.");
   }
 
   atualizarTextoRota();
@@ -858,25 +852,19 @@ async function reorganizarOrdem() {
 async function abrirRotaCompleta() {
   const pontos = await buscarPontosRota();
 
-  if (pontos.length === 0) {
-    alert("Adicione pontos na rota primeiro.");
+  if (pontos.length < 2) {
+    alert("Adicione pelo menos 2 pontos para abrir a rota completa.");
     return;
   }
 
-  const destinoCoordenadas = document.getElementById("destinoCoordenadas").value.trim();
-
-  if (!destinoCoordenadas) {
-    alert("Informe o destino final da rota.");
-    return;
-  }
-
-  const destino = destinoCoordenadas.replace(" ", "");
   const primeiro = pontos[0].pontos_base;
+  const ultimo = pontos[pontos.length - 1].pontos_base;
 
   const origem = `${primeiro.latitude},${primeiro.longitude}`;
+  const destino = `${ultimo.latitude},${ultimo.longitude}`;
 
   const waypoints = pontos
-    .slice(1)
+    .slice(1, -1)
     .map((item) => `${item.pontos_base.latitude},${item.pontos_base.longitude}`)
     .join("|");
 
