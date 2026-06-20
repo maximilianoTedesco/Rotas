@@ -341,3 +341,19 @@ button {
     font-size: 12px;
   }
 }
+
+.modulo-card {
+  display: none !important;
+}
+
+.modulo-card.ativo {
+  display: block !important;
+}
+
+.modulo-conteudo {
+  display: none !important;
+}
+
+.modulo-conteudo.ativo {
+  display: block !important;
+}
