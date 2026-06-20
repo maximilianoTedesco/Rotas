@@ -17,6 +17,28 @@ function textoSeguro(valor) {
     .replaceAll("'", "&#039;");
 }
 
+function toggleModulo(id) {
+  const conteudos = document.querySelectorAll(".modulo-conteudo");
+
+  conteudos.forEach((conteudo) => {
+    if (conteudo.id !== id) {
+      conteudo.classList.remove("ativo");
+    }
+  });
+
+  const elemento = document.getElementById(id);
+
+  if (!elemento) return;
+
+  elemento.classList.toggle("ativo");
+
+  setTimeout(() => {
+    if (mapa) {
+      mapa.invalidateSize();
+    }
+  }, 300);
+}
+
 async function verificarLogin() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
 
@@ -391,6 +413,8 @@ async function carregarPontosBase() {
   const lista = document.getElementById("listaPontosBase");
   const select = document.getElementById("selectPontoBase");
 
+  if (!lista || !select) return;
+
   lista.innerHTML = "";
   select.innerHTML = `<option value="">Selecione um ponto</option>`;
 
@@ -502,6 +526,7 @@ async function salvarRota() {
 
   atualizarTextoRota();
   await listarPontosRota();
+  await carregarGerenciamentoRotas();
 }
 
 async function carregarRotaAtual() {
@@ -563,12 +588,34 @@ async function carregarRotaAtual() {
 function atualizarTextoRota() {
   const texto = document.getElementById("rotaAtualTexto");
 
+  if (!texto) return;
+
   if (!rotaAtualId) {
     texto.textContent = "Nenhuma rota carregada. Salve a rota antes de adicionar pontos.";
     return;
   }
 
   texto.textContent = "Rota carregada. Agora adicione pontos cadastrados dentro dela.";
+}
+
+function limparFormularioRota() {
+  rotaAtualId = null;
+  localStorage.removeItem("rotaAtualId");
+
+  document.getElementById("nomeRota").value = "";
+  document.getElementById("dataRota").value = "";
+  document.getElementById("horarioInicio").value = "";
+  document.getElementById("motoristaRota").value = "";
+  document.getElementById("destinoNome").value = "";
+  document.getElementById("destinoCoordenadas").value = "";
+
+  const lista = document.getElementById("listaPontosRota");
+
+  if (lista) {
+    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
+  }
+
+  atualizarTextoRota();
 }
 
 async function adicionarPontoNaRota() {
@@ -617,6 +664,7 @@ async function adicionarPontoNaRota() {
   document.getElementById("observacao").value = "";
 
   await listarPontosRota();
+  await carregarGerenciamentoRotas();
 }
 
 async function buscarPontosRota() {
@@ -648,6 +696,8 @@ async function listarPontosRota() {
   const pontos = await buscarPontosRota();
   const lista = document.getElementById("listaPontosRota");
 
+  if (!lista) return;
+
   lista.innerHTML = "";
 
   if (pontos.length === 0) {
@@ -670,7 +720,7 @@ async function listarPontosRota() {
       <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
       <p><strong>Endereço:</strong> ${textoSeguro(ponto.endereco || "Não informado")}</p>
       <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
-      <p><strong>Status:</strong> ${traduzirStatus(item.status)}</p>
+      <p><strong>Status:</strong> ${traduzirStatusPonto(item.status)}</p>
       <p><strong>Observação:</strong> ${textoSeguro(item.observacao || "Sem observação")}</p>
 
       <div class="acoes">
@@ -738,6 +788,7 @@ async function removerPontoDaRota(id) {
 
   await reorganizarOrdem();
   await listarPontosRota();
+  await carregarGerenciamentoRotas();
 }
 
 async function reorganizarOrdem() {
@@ -814,12 +865,358 @@ async function limparRotaAtual() {
   }
 
   await listarPontosRota();
+  await carregarGerenciamentoRotas();
 }
 
-function traduzirStatus(status) {
+async function carregarGerenciamentoRotas() {
+  const lista = document.getElementById("listaGerenciamentoRotas");
+
+  if (!lista) return;
+
+  const filtro = document.getElementById("filtroStatusRotas");
+  const statusFiltro = filtro ? filtro.value : "todas";
+
+  lista.innerHTML = "<p>Carregando rotas...</p>";
+
+  let query = supabaseClient
+    .from("rotas")
+    .select("*")
+    .order("data", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (statusFiltro && statusFiltro !== "todas") {
+    query = query.eq("status", statusFiltro);
+  }
+
+  const { data: rotas, error } = await query;
+
+  if (error) {
+    lista.innerHTML = `<p>Erro ao carregar rotas: ${textoSeguro(error.message)}</p>`;
+    return;
+  }
+
+  if (!rotas || rotas.length === 0) {
+    lista.innerHTML = "<p>Nenhuma rota encontrada.</p>";
+    return;
+  }
+
+  const motoristaIds = [...new Set(rotas.map((rota) => rota.motorista_id).filter(Boolean))];
+
+  let motoristasPorId = {};
+
+  if (motoristaIds.length > 0) {
+    const { data: motoristas } = await supabaseClient
+      .from("perfis")
+      .select("id, nome, email")
+      .in("id", motoristaIds);
+
+    if (motoristas) {
+      motoristas.forEach((motorista) => {
+        motoristasPorId[motorista.id] = motorista;
+      });
+    }
+  }
+
+  const rotaIds = rotas.map((rota) => rota.id);
+
+  let pontosPorRota = {};
+
+  if (rotaIds.length > 0) {
+    const { data: pontos } = await supabaseClient
+      .from("rota_pontos")
+      .select("id, rota_id, qtd_passageiros")
+      .in("rota_id", rotaIds);
+
+    if (pontos) {
+      pontos.forEach((ponto) => {
+        if (!pontosPorRota[ponto.rota_id]) {
+          pontosPorRota[ponto.rota_id] = {
+            quantidadePontos: 0,
+            quantidadePassageiros: 0
+          };
+        }
+
+        pontosPorRota[ponto.rota_id].quantidadePontos += 1;
+        pontosPorRota[ponto.rota_id].quantidadePassageiros += Number(ponto.qtd_passageiros || 0);
+      });
+    }
+  }
+
+  lista.innerHTML = "";
+
+  rotas.forEach((rota) => {
+    const motorista = motoristasPorId[rota.motorista_id];
+    const resumo = pontosPorRota[rota.id] || {
+      quantidadePontos: 0,
+      quantidadePassageiros: 0
+    };
+
+    const status = rota.status || "ativa";
+
+    const div = document.createElement("div");
+    div.className = "rota-card";
+
+    div.innerHTML = `
+      <div class="rota-card-topo">
+        <div>
+          <h3>${textoSeguro(rota.nome || "Rota sem nome")}</h3>
+          <p><strong>Data:</strong> ${formatarData(rota.data)}</p>
+          <p><strong>Motorista:</strong> ${textoSeguro(motorista?.nome || motorista?.email || "Não informado")}</p>
+          <p><strong>Pontos:</strong> ${resumo.quantidadePontos}</p>
+          <p><strong>Passageiros:</strong> ${resumo.quantidadePassageiros}</p>
+          <p>
+            <strong>Status:</strong>
+            <span class="${classeStatusRota(status)}">${traduzirStatusRota(status)}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="acoes">
+        <button type="button" class="btn-azul" onclick="editarRotaGerenciamento('${rota.id}')">
+          Editar
+        </button>
+
+        <button type="button" class="btn-cinza" onclick="duplicarRota('${rota.id}')">
+          Duplicar
+        </button>
+
+        <button type="button" class="btn-verde" onclick="alterarStatusRota('${rota.id}', 'finalizada')">
+          Finalizar
+        </button>
+
+        <button type="button" class="btn-cinza" onclick="alterarStatusRota('${rota.id}', 'cancelada')">
+          Cancelar
+        </button>
+
+        <button type="button" class="btn-vermelho" onclick="excluirRota('${rota.id}')">
+          Excluir
+        </button>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+async function editarRotaGerenciamento(id) {
+  const { data: rota, error } = await supabaseClient
+    .from("rotas")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !rota) {
+    alert("Erro ao carregar rota para edição.");
+    return;
+  }
+
+  rotaAtualId = rota.id;
+  localStorage.setItem("rotaAtualId", rotaAtualId);
+
+  document.getElementById("nomeRota").value = rota.nome || "";
+  document.getElementById("dataRota").value = rota.data || "";
+  document.getElementById("horarioInicio").value = rota.horario_inicio || "";
+  document.getElementById("destinoNome").value = rota.destino_nome || "";
+
+  if (rota.destino_latitude && rota.destino_longitude) {
+    document.getElementById("destinoCoordenadas").value =
+      `${rota.destino_latitude}, ${rota.destino_longitude}`;
+  } else {
+    document.getElementById("destinoCoordenadas").value = "";
+  }
+
+  await carregarMotoristas();
+
+  if (rota.motorista_id) {
+    document.getElementById("motoristaRota").value = rota.motorista_id;
+  }
+
+  atualizarTextoRota();
+  await listarPontosRota();
+
+  toggleModulo("moduloCriarRota");
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  alert("Rota carregada para edição.");
+}
+
+async function duplicarRota(id) {
+  const confirmar = confirm("Deseja duplicar esta rota com todos os pontos?");
+
+  if (!confirmar) return;
+
+  const { data: rotaOriginal, error: erroRota } = await supabaseClient
+    .from("rotas")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (erroRota || !rotaOriginal) {
+    alert("Erro ao buscar rota original.");
+    return;
+  }
+
+  const novaRota = {
+    nome: `${rotaOriginal.nome || "Rota"} - Cópia`,
+    data: rotaOriginal.data,
+    horario_inicio: rotaOriginal.horario_inicio,
+    motorista_id: rotaOriginal.motorista_id,
+    destino_nome: rotaOriginal.destino_nome,
+    destino_latitude: rotaOriginal.destino_latitude,
+    destino_longitude: rotaOriginal.destino_longitude,
+    status: "ativa"
+  };
+
+  const { data: rotaCriada, error: erroCriar } = await supabaseClient
+    .from("rotas")
+    .insert(novaRota)
+    .select()
+    .single();
+
+  if (erroCriar || !rotaCriada) {
+    alert("Erro ao duplicar rota: " + (erroCriar?.message || "erro desconhecido"));
+    return;
+  }
+
+  const { data: pontosOriginais, error: erroPontos } = await supabaseClient
+    .from("rota_pontos")
+    .select("*")
+    .eq("rota_id", id)
+    .order("ordem", { ascending: true });
+
+  if (erroPontos) {
+    alert("Rota duplicada, mas houve erro ao buscar os pontos.");
+    await carregarGerenciamentoRotas();
+    return;
+  }
+
+  if (pontosOriginais && pontosOriginais.length > 0) {
+    const novosPontos = pontosOriginais.map((ponto) => ({
+      rota_id: rotaCriada.id,
+      ponto_base_id: ponto.ponto_base_id,
+      ordem: ponto.ordem,
+      horario_previsto: ponto.horario_previsto,
+      qtd_passageiros: ponto.qtd_passageiros,
+      observacao: ponto.observacao,
+      status: "pendente"
+    }));
+
+    const { error: erroInserirPontos } = await supabaseClient
+      .from("rota_pontos")
+      .insert(novosPontos);
+
+    if (erroInserirPontos) {
+      alert("Rota duplicada, mas houve erro ao duplicar os pontos: " + erroInserirPontos.message);
+      await carregarGerenciamentoRotas();
+      return;
+    }
+  }
+
+  alert("Rota duplicada com sucesso!");
+  await carregarGerenciamentoRotas();
+}
+
+async function alterarStatusRota(id, status) {
+  let mensagem = "Deseja alterar o status desta rota?";
+
+  if (status === "finalizada") {
+    mensagem = "Deseja finalizar esta rota?";
+  }
+
+  if (status === "cancelada") {
+    mensagem = "Deseja cancelar esta rota?";
+  }
+
+  const confirmar = confirm(mensagem);
+
+  if (!confirmar) return;
+
+  const { error } = await supabaseClient
+    .from("rotas")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    alert("Erro ao alterar status da rota: " + error.message);
+    return;
+  }
+
+  if (rotaAtualId === id) {
+    await carregarRotaAtual();
+    await listarPontosRota();
+  }
+
+  await carregarGerenciamentoRotas();
+
+  alert("Status da rota atualizado com sucesso!");
+}
+
+async function excluirRota(id) {
+  const confirmar = confirm(
+    "Deseja excluir esta rota? Esta ação também removerá os pontos vinculados a ela."
+  );
+
+  if (!confirmar) return;
+
+  const { error: erroPontos } = await supabaseClient
+    .from("rota_pontos")
+    .delete()
+    .eq("rota_id", id);
+
+  if (erroPontos) {
+    alert("Erro ao excluir pontos da rota: " + erroPontos.message);
+    return;
+  }
+
+  const { error: erroRota } = await supabaseClient
+    .from("rotas")
+    .delete()
+    .eq("id", id);
+
+  if (erroRota) {
+    alert("Erro ao excluir rota: " + erroRota.message);
+    return;
+  }
+
+  if (rotaAtualId === id) {
+    limparFormularioRota();
+  }
+
+  await carregarGerenciamentoRotas();
+
+  alert("Rota excluída com sucesso!");
+}
+
+function traduzirStatusPonto(status) {
   if (status === "coletado") return "Coletado";
   if (status === "ausente") return "Ausente";
   return "Pendente";
+}
+
+function traduzirStatusRota(status) {
+  if (status === "finalizada") return "Finalizada";
+  if (status === "cancelada") return "Cancelada";
+  return "Ativa";
+}
+
+function classeStatusRota(status) {
+  if (status === "finalizada") return "status-finalizada";
+  if (status === "cancelada") return "status-cancelada";
+  return "status-ativa";
+}
+
+function formatarData(data) {
+  if (!data) return "Não informada";
+
+  const partes = data.split("-");
+
+  if (partes.length !== 3) return data;
+
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
 }
 
 function irMotorista() {
@@ -844,6 +1241,7 @@ async function iniciarPagina() {
   await carregarPontosBase();
   await carregarRotaAtual();
   await listarPontosRota();
+  await carregarGerenciamentoRotas();
 }
 
 iniciarPagina();
