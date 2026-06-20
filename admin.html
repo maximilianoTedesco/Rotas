@@ -27,45 +27,12 @@
       </div>
     </header>
 
-    <section class="card modulo-card ativo" id="moduloDashboard">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloDashboard')">
-        <span>📌 Dashboard</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloCadastrarMotorista')">
+        🚐 Cadastrar motorista
       </button>
 
-      <div class="modulo-conteudo">
-        <div class="dashboard-grid">
-          <div class="mini-card">
-            <span>Rotas ativas</span>
-            <strong id="totalRotasAtivas">0</strong>
-          </div>
-          <div class="mini-card">
-            <span>Rotas finalizadas</span>
-            <strong id="totalRotasFinalizadas">0</strong>
-          </div>
-          <div class="mini-card">
-            <span>Rotas canceladas</span>
-            <strong id="totalRotasCanceladas">0</strong>
-          </div>
-          <div class="mini-card">
-            <span>Motoristas ativos</span>
-            <strong id="totalMotoristasAtivos">0</strong>
-          </div>
-        </div>
-
-        <p class="aviso">
-          Use os módulos abaixo para cadastrar motoristas, pontos, criar rotas e gerenciar rotas já cadastradas.
-        </p>
-      </div>
-    </section>
-
-    <section class="card modulo-card" id="moduloCadastrarMotorista">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloCadastrarMotorista')">
-        <span>🚐 Cadastrar motorista</span>
-        <strong>⌄</strong>
-      </button>
-
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloCadastrarMotorista">
         <label for="nomeMotorista">Nome do motorista</label>
         <input type="text" id="nomeMotorista" placeholder="Ex: João Silva" />
 
@@ -85,26 +52,24 @@
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloGerenciarMotoristas">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloGerenciarMotoristas')">
-        <span>👥 Gerenciar motoristas</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloGerenciarMotoristas')">
+        👥 Gerenciar motoristas
       </button>
 
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloGerenciarMotoristas">
         <div id="listaMotoristas">
           <p>Carregando motoristas...</p>
         </div>
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloCadastrarPonto">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloCadastrarPonto')">
-        <span>📍 Cadastrar ponto fixo</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloCadastrarPonto')">
+        📍 Cadastrar ponto fixo
       </button>
 
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloCadastrarPonto">
         <label for="nomePontoBase">Nome do ponto</label>
         <input type="text" id="nomePontoBase" placeholder="Ex: Paragem Praia da Rocha" />
 
@@ -124,24 +89,22 @@
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloPontosCadastrados">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloPontosCadastrados')">
-        <span>📋 Pontos fixos cadastrados</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloPontosCadastrados')">
+        📋 Pontos fixos cadastrados
       </button>
 
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloPontosCadastrados">
         <div id="listaPontosBase"></div>
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloCriarRota">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloCriarRota')">
-        <span>🛣️ Criar / atualizar rota</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloCriarRota')">
+        🛣️ Criar / atualizar rota
       </button>
 
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloCriarRota">
         <label for="nomeRota">Nome da rota</label>
         <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
 
@@ -170,7 +133,7 @@
           Salvar / atualizar rota
         </button>
 
-        <button type="button" class="btn-cinza" onclick="novaRotaEmBranco()">
+        <button type="button" class="btn-cinza" onclick="limparFormularioRota()">
           Nova rota em branco
         </button>
 
@@ -178,33 +141,12 @@
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloGerenciarRotas">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloGerenciarRotas')">
-        <span>🧭 Gerenciar rotas</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloAdicionarPontoRota')">
+        ➕ Adicionar ponto cadastrado na rota
       </button>
 
-      <div class="modulo-conteudo">
-        <div class="filtros-rotas">
-          <button type="button" class="btn-azul filtro-ativo" id="filtroTodas" onclick="filtrarRotas('todas')">Todas</button>
-          <button type="button" class="btn-cinza" id="filtroAtiva" onclick="filtrarRotas('ativa')">Ativas</button>
-          <button type="button" class="btn-cinza" id="filtroFinalizada" onclick="filtrarRotas('finalizada')">Finalizadas</button>
-          <button type="button" class="btn-cinza" id="filtroCancelada" onclick="filtrarRotas('cancelada')">Canceladas</button>
-        </div>
-
-        <div id="listaRotasGerenciamento">
-          <p>Carregando rotas...</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="card modulo-card" id="moduloAdicionarPontoRota">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloAdicionarPontoRota')">
-        <span>➕ Adicionar ponto cadastrado na rota</span>
-        <strong>⌄</strong>
-      </button>
-
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloAdicionarPontoRota">
         <label for="selectPontoBase">Ponto cadastrado</label>
         <select id="selectPontoBase"></select>
 
@@ -223,13 +165,12 @@
       </div>
     </section>
 
-    <section class="card modulo-card" id="moduloRotaMontada">
-      <button type="button" class="modulo-titulo" onclick="alternarModulo('moduloRotaMontada')">
-        <span>✅ Rota montada</span>
-        <strong>⌄</strong>
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloRotaMontada')">
+        ✅ Rota montada
       </button>
 
-      <div class="modulo-conteudo">
+      <div class="modulo-conteudo" id="moduloRotaMontada">
         <div id="listaPontosRota"></div>
 
         <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
@@ -241,10 +182,30 @@
         </button>
       </div>
     </section>
+
+    <section class="card modulo-card">
+      <button type="button" class="modulo-titulo" onclick="toggleModulo('moduloGerenciarRotas')">
+        🧭 Gerenciar rotas
+      </button>
+
+      <div class="modulo-conteudo" id="moduloGerenciarRotas">
+        <label for="filtroStatusRotas">Filtrar por status</label>
+        <select id="filtroStatusRotas" onchange="carregarGerenciamentoRotas()">
+          <option value="todas">Todas</option>
+          <option value="ativa">Ativas</option>
+          <option value="finalizada">Finalizadas</option>
+          <option value="cancelada">Canceladas</option>
+        </select>
+
+        <div id="listaGerenciamentoRotas">
+          <p>Carregando rotas...</p>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=4"></script>
+  <script src="admin.js?v=5"></script>
 </body>
 </html>
