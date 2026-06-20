@@ -45,9 +45,6 @@ header h1 {
   width: 100%;
   background: white;
   color: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   text-align: left;
   padding: 18px;
   border-radius: 18px;
@@ -55,26 +52,13 @@ header h1 {
   margin: 0;
 }
 
-.modulo-titulo strong {
-  font-size: 22px;
-  transition: transform 0.2s ease;
-}
-
-.modulo-card.ativo .modulo-titulo strong {
-  transform: rotate(180deg);
-}
-
 .modulo-conteudo {
   display: none;
   padding: 0 18px 18px;
 }
 
-.modulo-card.ativo .modulo-conteudo {
+.modulo-conteudo.ativo {
   display: block;
-}
-
-h2 {
-  margin-bottom: 16px;
 }
 
 label {
@@ -116,10 +100,6 @@ button {
   margin: 4px 0;
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
 .btn-verde {
   background: #22c55e;
   color: white;
@@ -140,24 +120,13 @@ button:hover {
   color: white;
 }
 
-.btn-amarelo {
-  background: #f59e0b;
-  color: white;
-}
-
 .top-actions,
-.acoes,
-.modo-mapa-box,
-.filtros-rotas {
+.acoes {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
   margin-bottom: 12px;
-}
-
-.filtro-ativo {
-  outline: 3px solid rgba(37, 99, 235, 0.25);
 }
 
 #map {
@@ -191,32 +160,6 @@ button:hover {
 .rota-card p {
   margin-bottom: 5px;
   color: #334155;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-.mini-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.mini-card span {
-  display: block;
-  color: #475569;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.mini-card strong {
-  display: block;
-  font-size: 28px;
-  color: #0f172a;
 }
 
 .status-ativo,
@@ -257,12 +200,6 @@ button:hover {
   margin: 14px 0;
 }
 
-@media (max-width: 800px) {
-  .dashboard-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 600px) {
   body {
     padding: 10px;
@@ -286,14 +223,8 @@ button:hover {
   }
 
   .top-actions,
-  .acoes,
-  .modo-mapa-box,
-  .filtros-rotas {
+  .acoes {
     flex-direction: column;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
   }
 
   .modulo-titulo {
