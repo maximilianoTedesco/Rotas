@@ -241,36 +241,40 @@ function mostrarProximoPonto(pontos) {
 function mostrarRotaCompleta(pontos) {
   const box = document.getElementById("rotaCompletaBox");
 
-  if (
-    !rotaAtual ||
-    !rotaAtual.destino_latitude ||
-    !rotaAtual.destino_longitude ||
-    pontos.length === 0
-  ) {
+  if (!rotaAtual || pontos.length < 2) {
     box.innerHTML = "";
     return;
   }
 
-  const pontosValidos = pontos.filter((item) => item.pontos_base);
+  const primeiroPonto = pontos[0];
+  const ultimoPonto = pontos[pontos.length - 1];
 
-  if (pontosValidos.length === 0) {
-    box.innerHTML = "";
-    return;
+  const origem = `${primeiroPonto.latitude},${primeiroPonto.longitude}`;
+  const destino = `${ultimoPonto.latitude},${ultimoPonto.longitude}`;
+
+  const waypoints = pontos
+    .slice(1, -1)
+    .map((ponto) => `${ponto.latitude},${ponto.longitude}`)
+    .join("|");
+
+  let linkRotaCompleta =
+    `https://www.google.com/maps/dir/?api=1` +
+    `&origin=${origem}` +
+    `&destination=${destino}`;
+
+  if (waypoints) {
+    linkRotaCompleta += `&waypoints=${waypoints}`;
   }
-
-  const linkRotaCompleta = criarLinkRotaCompleta(pontosValidos);
 
   box.innerHTML = `
-    <div class="proximo-box">
+    <div class="card destaque">
       <h2>Rota completa</h2>
-      <p><strong>Destino final:</strong> ${rotaAtual.destino_nome || "Não informado"}</p>
-      <p><strong>Total de paradas:</strong> ${pontosValidos.length}</p>
-
-      <div class="botoes">
-        <button class="btn-maps" onclick="abrirMaps('${linkRotaCompleta}')">
-          Abrir rota completa no Google Maps
-        </button>
-      </div>
+      <p><strong>Início:</strong> ${primeiroPonto.nome_ponto}</p>
+      <p><strong>Final:</strong> ${ultimoPonto.nome_ponto}</p>
+      <p><strong>Total de paradas:</strong> ${pontos.length}</p>
+      <button onclick="abrirMaps('${linkRotaCompleta}')">
+        Abrir rota completa no Google Maps
+      </button>
     </div>
   `;
 }
