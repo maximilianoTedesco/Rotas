@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,22 +33,26 @@
       <p>Escolha uma opção abaixo. Apenas o painel selecionado ficará aberto.</p>
 
       <div class="grid-opcoes">
-        <button type="button" class="opcao-card" data-painel="moduloCadastrarMotorista" onclick="abrirPainel('moduloCadastrarMotorista')">
+        <button type="button" class="opcao-card" data-painel="moduloCadastrarMotorista"
+          onclick="abrirPainel('moduloCadastrarMotorista')">
           <strong>🚐 Cadastrar motorista</strong>
           <span>Criar novo acesso para motorista.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloGerenciarMotoristas" onclick="abrirPainel('moduloGerenciarMotoristas')">
+        <button type="button" class="opcao-card" data-painel="moduloGerenciarMotoristas"
+          onclick="abrirPainel('moduloGerenciarMotoristas')">
           <strong>👥 Gerenciar motoristas</strong>
           <span>Editar dados, senha ou status.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloCadastrarPonto" onclick="abrirPainel('moduloCadastrarPonto')">
+        <button type="button" class="opcao-card" data-painel="moduloCadastrarPonto"
+          onclick="abrirPainel('moduloCadastrarPonto')">
           <strong>📍 Cadastrar ponto fixo</strong>
           <span>Salvar locais usando o mapa.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloPontosCadastrados" onclick="abrirPainel('moduloPontosCadastrados')">
+        <button type="button" class="opcao-card" data-painel="moduloPontosCadastrados"
+          onclick="abrirPainel('moduloPontosCadastrados')">
           <strong>📋 Pontos cadastrados</strong>
           <span>Consultar ou desativar pontos.</span>
         </button>
@@ -57,17 +62,20 @@
           <span>Definir motorista, data e destino.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloAdicionarPontoRota" onclick="abrirPainel('moduloAdicionarPontoRota')">
+        <button type="button" class="opcao-card" data-painel="moduloAdicionarPontoRota"
+          onclick="abrirPainel('moduloAdicionarPontoRota')">
           <strong>➕ Pontos da rota</strong>
           <span>Adicionar recolhas à rota atual.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloRotaMontada" onclick="abrirPainel('moduloRotaMontada')">
+        <button type="button" class="opcao-card" data-painel="moduloRotaMontada"
+          onclick="abrirPainel('moduloRotaMontada')">
           <strong>✅ Rota montada</strong>
           <span>Ver sequência e abrir no Maps.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloGerenciarRotas" onclick="abrirPainel('moduloGerenciarRotas')">
+        <button type="button" class="opcao-card" data-painel="moduloGerenciarRotas"
+          onclick="abrirPainel('moduloGerenciarRotas')">
           <strong>🧭 Gerenciar rotas</strong>
           <span>Editar, duplicar ou finalizar rotas.</span>
         </button>
@@ -80,7 +88,8 @@
 
     <div class="modulos-wrapper">
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista" onclick="toggleModulo('moduloCadastrarMotorista')">
+        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista"
+          onclick="toggleModulo('moduloCadastrarMotorista')">
           🚐 Cadastrar motorista
         </button>
 
@@ -105,7 +114,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarMotoristas" onclick="toggleModulo('moduloGerenciarMotoristas')">
+        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarMotoristas"
+          onclick="toggleModulo('moduloGerenciarMotoristas')">
           👥 Gerenciar motoristas
         </button>
 
@@ -117,7 +127,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarPonto" onclick="toggleModulo('moduloCadastrarPonto')">
+        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarPonto"
+          onclick="toggleModulo('moduloCadastrarPonto')">
           📍 Cadastrar ponto fixo
         </button>
 
@@ -142,7 +153,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloPontosCadastrados" onclick="toggleModulo('moduloPontosCadastrados')">
+        <button type="button" class="modulo-titulo" data-painel="moduloPontosCadastrados"
+          onclick="toggleModulo('moduloPontosCadastrados')">
           📋 Pontos fixos cadastrados
         </button>
 
@@ -152,7 +164,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCriarRota" onclick="toggleModulo('moduloCriarRota')">
+        <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
+          onclick="toggleModulo('moduloCriarRota')">
           🛣️ Criar / atualizar rota
         </button>
 
@@ -194,7 +207,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloAdicionarPontoRota" onclick="toggleModulo('moduloAdicionarPontoRota')">
+        <button type="button" class="modulo-titulo" data-painel="moduloAdicionarPontoRota"
+          onclick="toggleModulo('moduloAdicionarPontoRota')">
           ➕ Adicionar ponto cadastrado na rota
         </button>
 
@@ -218,7 +232,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloRotaMontada" onclick="toggleModulo('moduloRotaMontada')">
+        <button type="button" class="modulo-titulo" data-painel="moduloRotaMontada"
+          onclick="toggleModulo('moduloRotaMontada')">
           ✅ Rota montada
         </button>
 
@@ -236,7 +251,8 @@
       </section>
 
       <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarRotas" onclick="toggleModulo('moduloGerenciarRotas')">
+        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarRotas"
+          onclick="toggleModulo('moduloGerenciarRotas')">
           🧭 Gerenciar rotas
         </button>
 
@@ -261,4 +277,5 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="admin.js?v=6"></script>
 </body>
+
 </html>
