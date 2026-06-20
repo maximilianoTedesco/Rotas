@@ -48,13 +48,6 @@ function atualizarEstadoVisualPainel(idAberto) {
     );
   });
 
-  document.querySelectorAll(".modulo-titulo").forEach((botao) => {
-  botao.classList.toggle(
-    "ativo",
-    botao.dataset.painel === idAberto
-  );
-});
-
   document.querySelectorAll(".modulo-card").forEach((card) => {
     const conteudo = card.querySelector(".modulo-conteudo");
 
@@ -1094,7 +1087,12 @@ async function editarRotaGerenciamento(id) {
   atualizarTextoRota();
   await listarPontosRota();
 
- abrirPainel("moduloCriarRota");
+  toggleModulo("moduloCriarRota");
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 
   alert("Rota carregada para edição.");
 }
@@ -1298,7 +1296,7 @@ async function iniciarPagina() {
   await listarPontosRota();
   await carregarGerenciamentoRotas();
 
-atualizarEstadoVisualPainel(null);
+  atualizarEstadoVisualPainel(null);
 }
 
 iniciarPagina();
