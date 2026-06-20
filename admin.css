@@ -12,20 +12,24 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: auto;
 }
 
 header {
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
   color: white;
-  padding: 20px;
+  padding: 22px;
   border-radius: 18px;
   margin-bottom: 20px;
 }
 
 header h1 {
   margin-bottom: 6px;
+}
+
+header p {
+  color: #cbd5e1;
 }
 
 .card {
@@ -36,9 +40,77 @@ header h1 {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+.painel-opcoes h2 {
+  margin-bottom: 6px;
+}
+
+.painel-opcoes > p {
+  color: #475569;
+  margin-bottom: 16px;
+}
+
+.grid-opcoes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.opcao-card {
+  min-height: 105px;
+  background: #0f172a;
+  color: white;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.opcao-card strong {
+  font-size: 17px;
+}
+
+.opcao-card span {
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: normal;
+}
+
+.opcao-card:hover,
+.opcao-card.ativo {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.25);
+}
+
+.painel-atual {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.modulos-wrapper {
+  margin-top: 4px;
+}
+
 .modulo-card {
   padding: 0;
   overflow: hidden;
+  display: none;
+}
+
+.modulo-card.ativo {
+  display: block;
 }
 
 .modulo-titulo {
@@ -50,6 +122,24 @@ header h1 {
   border-radius: 18px;
   font-size: 18px;
   margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modulo-titulo::after {
+  content: "Abrir";
+  font-size: 13px;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+.modulo-titulo.ativo::after {
+  content: "Aberto";
+  color: #16a34a;
+  background: #dcfce7;
 }
 
 .modulo-conteudo {
@@ -200,6 +290,12 @@ button {
   margin: 14px 0;
 }
 
+@media (max-width: 900px) {
+  .grid-opcoes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 600px) {
   body {
     padding: 10px;
@@ -212,6 +308,15 @@ button {
 
   header {
     padding: 15px;
+  }
+
+  .grid-opcoes {
+    grid-template-columns: 1fr;
+  }
+
+  .opcao-card {
+    width: 100%;
+    min-height: 88px;
   }
 
   #map {
@@ -229,5 +334,10 @@ button {
 
   .modulo-titulo {
     border-radius: 14px;
+    font-size: 16px;
+  }
+
+  .modulo-titulo::after {
+    font-size: 12px;
   }
 }
