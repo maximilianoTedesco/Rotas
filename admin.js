@@ -17,26 +17,79 @@ function textoSeguro(valor) {
     .replaceAll("'", "&#039;");
 }
 
-function toggleModulo(id) {
-  const conteudos = document.querySelectorAll(".modulo-conteudo");
+function nomePainel(id) {
+  const nomes = {
+    moduloCadastrarMotorista: "Cadastrar motorista",
+    moduloGerenciarMotoristas: "Gerenciar motoristas",
+    moduloCadastrarPonto: "Cadastrar ponto fixo",
+    moduloPontosCadastrados: "Pontos cadastrados",
+    moduloCriarRota: "Criar rota",
+    moduloAdicionarPontoRota: "Adicionar pontos",
+    moduloRotaMontada: "Rota montada",
+    moduloGerenciarRotas: "Gerenciar rotas"
+  };
 
-  conteudos.forEach((conteudo) => {
-    if (conteudo.id !== id) {
-      conteudo.classList.remove("ativo");
-    }
+  return nomes[id] || "Painel";
+}
+
+function atualizarEstadoVisualPainel(idAberto) {
+  const texto = document.getElementById("painelAtualTexto");
+
+  if (texto) {
+    texto.textContent = idAberto
+      ? `Painel aberto: ${nomePainel(idAberto)}`
+      : "Nenhum painel aberto";
+  }
+
+  document.querySelectorAll(".opcao-card").forEach((botao) => {
+    botao.classList.toggle(
+      "ativo",
+      botao.dataset.painel === idAberto
+    );
+  });
+
+  document.querySelectorAll(".modulo-card").forEach((card) => {
+    const conteudo = card.querySelector(".modulo-conteudo");
+
+    card.classList.toggle(
+      "ativo",
+      conteudo && conteudo.id === idAberto
+    );
+  });
+}
+
+function abrirPainel(id) {
+  document.querySelectorAll(".modulo-conteudo").forEach((conteudo) => {
+    conteudo.classList.remove("ativo");
   });
 
   const elemento = document.getElementById(id);
 
   if (!elemento) return;
 
-  elemento.classList.toggle("ativo");
+  elemento.classList.add("ativo");
+
+  atualizarEstadoVisualPainel(id);
 
   setTimeout(() => {
     if (mapa) {
       mapa.invalidateSize();
     }
   }, 300);
+}
+
+function toggleModulo(id) {
+  const elemento = document.getElementById(id);
+
+  if (!elemento) return;
+
+  if (elemento.classList.contains("ativo")) {
+    elemento.classList.remove("ativo");
+    atualizarEstadoVisualPainel(null);
+    return;
+  }
+
+  abrirPainel(id);
 }
 
 async function verificarLogin() {
@@ -1242,6 +1295,8 @@ async function iniciarPagina() {
   await carregarRotaAtual();
   await listarPontosRota();
   await carregarGerenciamentoRotas();
+
+atualizarEstadoVisualPainel(null);
 }
 
 iniciarPagina();
