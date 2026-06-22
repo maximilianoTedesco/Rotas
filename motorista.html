@@ -6,6 +6,8 @@
 
   <title>Motorista | Rotas Algarve</title>
 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
   <link rel="stylesheet" href="motorista.css" />
 </head>
 
@@ -25,6 +27,14 @@
 
     <section id="proximoPonto"></section>
 
+    <section class="card mapa-card">
+      <h2>Mapa da rota</h2>
+      <p class="mapa-ajuda">
+        A rota é exibida dentro do sistema, seguindo a ordem dos pontos cadastrados.
+      </p>
+      <div id="mapaMotorista"></div>
+    </section>
+
     <section id="rotaCompletaBox"></section>
 
     <section class="card">
@@ -34,6 +44,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
   <script src="motorista.js"></script>
 </body>
 </html>
