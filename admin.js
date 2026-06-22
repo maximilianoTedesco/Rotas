@@ -139,7 +139,7 @@ function iniciarMapa() {
     const lng = e.latlng.lng.toFixed(6);
     const coordenada = `${lat}, ${lng}`;
 
-     document.getElementById("coordenadasPontoBase").value = coordenada;
+    document.getElementById("coordenadasPontoBase").value = coordenada;
 
     if (marcador) {
       mapa.removeLayer(marcador);
@@ -452,11 +452,12 @@ async function carregarPontosBase() {
     .eq("ativo", true)
     .order("nome", { ascending: true });
 
-  if (error) pontosBaseCache = data || [];{
+
+  if (error) {
     console.error("Erro ao buscar pontos fixos:", error);
     return;
   }
-  
+
   pontosBaseCache = data || [];
 
   const lista = document.getElementById("listaPontosBase");
@@ -872,14 +873,7 @@ async function editarRotaGerenciamento(id) {
   document.getElementById("nomeRota").value = rota.nome || "";
   document.getElementById("dataRota").value = rota.data || "";
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
-  document.getElementById("destinoNome").value = rota.destino_nome || "";
 
-  if (rota.destino_latitude && rota.destino_longitude) {
-    document.getElementById("destinoCoordenadas").value =
-      `${rota.destino_latitude}, ${rota.destino_longitude}`;
-  } else {
-    document.getElementById("destinoCoordenadas").value = "";
-  }
 
   await carregarMotoristas();
 
@@ -1100,36 +1094,6 @@ async function iniciarPagina() {
   await carregarGerenciamentoRotas();
 
   atualizarEstadoVisualPainel(null);
-}
-
-function listarPontosTemporarios() {
-  const lista = document.getElementById("listaPontosRota");
-  lista.innerHTML = "";
-
-  if (pontosTemporarios.length === 0) {
-    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
-    return;
-  }
-
-  pontosTemporarios.forEach((item, index) => {
-    const ponto = pontosBaseCache.find((p) => String(p.id) === String(item.ponto_base_id));
-
-    const div = document.createElement("div");
-    div.className = "ponto";
-
-    div.innerHTML = `
-      <h3>${index + 1}. ${ponto ? ponto.nome : "Ponto não encontrado"}</h3>
-      <p><strong>Horário:</strong> ${item.horario_previsto}</p>
-      <p><strong>Passageiros:</strong> ${item.qtd_passageiros}</p>
-      <p><strong>Observação:</strong> ${item.observacao || "Sem observação"}</p>
-
-      <button onclick="moverPontoTemporario(${index}, 'cima')">Subir</button>
-      <button onclick="moverPontoTemporario(${index}, 'baixo')">Descer</button>
-      <button onclick="removerPontoTemporario(${index})">Remover</button>
-    `;
-
-    lista.appendChild(div);
-  });
 }
 
 function moverPontoTemporario(index, direcao) {
