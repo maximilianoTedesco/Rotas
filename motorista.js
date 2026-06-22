@@ -4,6 +4,8 @@ const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let rotaAtual = null;
+let mapaMotorista = null;
+let controleRotaMotorista = null;
 
 verificarLogin();
 
@@ -34,59 +36,59 @@ async function verificarLogin() {
   await carregarRotaMotorista();
 }
 
-  async function carregarRotaMotorista() {
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-  
-    if (!sessionData.session) {
-      window.location.href = "index.html";
-      return;
-    }
-  
-    const motoristaId = sessionData.session.user.id;
-  
-    const { data, error } = await supabaseClient
-      .from("rotas")
-      .select("*")
-      .eq("status", "ativa")
-      .eq("motorista_id", motoristaId)
-      .order("created_at", { ascending: false })
-      .limit(1);
-  
-    if (error) {
-      document.getElementById("rotaInfo").innerHTML = "Erro ao carregar rota.";
-      console.error(error);
-      return;
-    }
-  
-    if (!data || data.length === 0) {
-      rotaAtual = null;
-  
-      document.getElementById("rotaInfo").innerHTML =
-        "Nenhuma rota ativa atribuída para este motorista.";
-  
-      document.getElementById("proximoPonto").innerHTML = "";
-      document.getElementById("rotaCompletaBox").innerHTML = "";
-  
-      document.getElementById("listaPontos").innerHTML = `
-        <div class="sem-pontos">
-          O ADM ainda não atribuiu uma rota ativa para este motorista.
-        </div>
-      `;
-  
-      return;
-    }
-  
-    rotaAtual = data[0];
-  
-    document.getElementById("rotaInfo").innerHTML = `
-      <p><strong>Rota:</strong> ${rotaAtual.nome}</p>
-      <p><strong>Data:</strong> ${formatarData(rotaAtual.data)}</p>
-      <p><strong>Horário inicial:</strong> ${formatarHora(rotaAtual.horario_inicio)}</p>
-      <p><strong>Destino final:</strong> ${rotaAtual.destino_nome || "Não informado"}</p>
-    `;
-  
-    await listarPontosMotorista();
+async function carregarRotaMotorista() {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+
+  if (!sessionData.session) {
+    window.location.href = "index.html";
+    return;
   }
+
+  const motoristaId = sessionData.session.user.id;
+
+  const { data, error } = await supabaseClient
+    .from("rotas")
+    .select("*")
+    .eq("status", "ativa")
+    .eq("motorista_id", motoristaId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    document.getElementById("rotaInfo").innerHTML = "Erro ao carregar rota.";
+    console.error(error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    rotaAtual = null;
+
+    document.getElementById("rotaInfo").innerHTML =
+      "Nenhuma rota ativa atribuída para este motorista.";
+
+    document.getElementById("proximoPonto").innerHTML = "";
+    document.getElementById("rotaCompletaBox").innerHTML = "";
+
+    document.getElementById("listaPontos").innerHTML = `
+      <div class="sem-pontos">
+        O ADM ainda não atribuiu uma rota ativa para este motorista.
+      </div>
+    `;
+
+    return;
+  }
+
+  rotaAtual = data[0];
+
+  document.getElementById("rotaInfo").innerHTML = `
+    <p><strong>Rota:</strong> ${rotaAtual.nome}</p>
+    <p><strong>Data:</strong> ${formatarData(rotaAtual.data)}</p>
+    <p><strong>Horário inicial:</strong> ${formatarHora(rotaAtual.horario_inicio)}</p>
+    <p><strong>Destino final:</strong> O último ponto da rota</p>
+  `;
+
+  await listarPontosMotorista();
+}
 
 async function buscarPontos() {
   if (!rotaAtual) return [];
@@ -119,7 +121,6 @@ async function listarPontosMotorista() {
 
   if (pontos.length === 0) {
     document.getElementById("proximoPonto").innerHTML = "";
-
     document.getElementById("rotaCompletaBox").innerHTML = "";
 
     lista.innerHTML = `
@@ -128,11 +129,13 @@ async function listarPontosMotorista() {
       </div>
     `;
 
+    limparMapaMotorista();
     return;
   }
 
   mostrarProximoPonto(pontos);
   mostrarRotaCompleta(pontos);
+  desenharRotaMotorista(pontos);
 
   lista.innerHTML = "";
 
@@ -140,8 +143,6 @@ async function listarPontosMotorista() {
     const ponto = item.pontos_base;
 
     if (!ponto) return;
-
-    const linkMaps = criarLinkProximaParada(ponto.latitude, ponto.longitude);
 
     const div = document.createElement("div");
 
@@ -163,10 +164,6 @@ async function listarPontosMotorista() {
       <span class="status">${traduzirStatus(item.status)}</span>
 
       <div class="botoes">
-        <button class="btn-maps" onclick="abrirMaps('${linkMaps}')">
-          Abrir no Google Maps
-        </button>
-
         <button class="btn-verde" onclick="alterarStatus('${item.id}', 'coletado')">
           Coletado
         </button>
@@ -181,6 +178,76 @@ async function listarPontosMotorista() {
   });
 }
 
+function iniciarMapaMotorista() {
+  if (mapaMotorista) return;
+
+  mapaMotorista = L.map("mapaMotorista").setView([37.1366, -8.5377], 12);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(mapaMotorista);
+}
+
+function limparMapaMotorista() {
+  if (controleRotaMotorista && mapaMotorista) {
+    mapaMotorista.removeControl(controleRotaMotorista);
+    controleRotaMotorista = null;
+  }
+}
+
+function desenharRotaMotorista(pontos) {
+  if (!pontos || pontos.length < 2) return;
+
+  iniciarMapaMotorista();
+
+  setTimeout(() => {
+    if (mapaMotorista) {
+      mapaMotorista.invalidateSize();
+    }
+  }, 300);
+
+  limparMapaMotorista();
+
+  const pontosValidos = pontos.filter((item) => {
+    const ponto = item.pontos_base;
+    return ponto && ponto.latitude && ponto.longitude;
+  });
+
+  if (pontosValidos.length < 2) return;
+
+  const waypoints = pontosValidos.map((item) => {
+    const ponto = item.pontos_base;
+    return L.latLng(Number(ponto.latitude), Number(ponto.longitude));
+  });
+
+  controleRotaMotorista = L.Routing.control({
+    waypoints,
+    routeWhileDragging: false,
+    addWaypoints: false,
+    draggableWaypoints: false,
+    fitSelectedRoutes: true,
+    show: false,
+    createMarker: function (i, waypoint) {
+      const item = pontosValidos[i];
+      const ponto = item.pontos_base;
+
+      return L.marker(waypoint.latLng).bindPopup(`
+        <strong>${i + 1}. ${ponto.nome}</strong><br>
+        ${ponto.endereco || "Endereço não informado"}<br>
+        Horário: ${formatarHora(item.horario_previsto)}
+      `);
+    },
+    lineOptions: {
+      styles: [
+        {
+          weight: 6,
+          opacity: 0.9
+        }
+      ]
+    }
+  }).addTo(mapaMotorista);
+}
+
 function mostrarProximoPonto(pontos) {
   const proximo = pontos.find((item) => item.status === "pendente");
   const box = document.getElementById("proximoPonto");
@@ -190,12 +257,6 @@ function mostrarProximoPonto(pontos) {
       <div class="proximo-box">
         <h2>Rota finalizada</h2>
         <p>Todos os pontos foram marcados como coletados ou ausentes.</p>
-
-        <div class="botoes">
-          <button class="btn-maps" onclick="abrirDestinoFinal()">
-            Ir para o destino final
-          </button>
-        </div>
       </div>
     `;
 
@@ -209,8 +270,6 @@ function mostrarProximoPonto(pontos) {
     return;
   }
 
-  const linkMaps = criarLinkProximaParada(ponto.latitude, ponto.longitude);
-
   box.innerHTML = `
     <div class="proximo-box destaque-proximo">
       <h2>Próximo ponto</h2>
@@ -222,10 +281,6 @@ function mostrarProximoPonto(pontos) {
       <p><strong>Observação:</strong> ${proximo.observacao || "Sem observação"}</p>
 
       <div class="botoes">
-        <button class="btn-maps" onclick="abrirMaps('${linkMaps}')">
-          Ir para o próximo ponto
-        </button>
-
         <button class="btn-verde" onclick="alterarStatus('${proximo.id}', 'coletado')">
           Marcar coletado e avançar
         </button>
@@ -246,83 +301,30 @@ function mostrarRotaCompleta(pontos) {
     return;
   }
 
-  const primeiroPonto = pontos[0];
-  const ultimoPonto = pontos[pontos.length - 1];
+  const primeiroItem = pontos[0];
+  const ultimoItem = pontos[pontos.length - 1];
 
-  const origem = `${primeiroPonto.latitude},${primeiroPonto.longitude}`;
-  const destino = `${ultimoPonto.latitude},${ultimoPonto.longitude}`;
+  const primeiroPonto = primeiroItem.pontos_base;
+  const ultimoPonto = ultimoItem.pontos_base;
 
-  const waypoints = pontos
-    .slice(1, -1)
-    .map((ponto) => `${ponto.latitude},${ponto.longitude}`)
-    .join("|");
-
-  let linkRotaCompleta =
-    `https://www.google.com/maps/dir/?api=1` +
-    `&origin=${origem}` +
-    `&destination=${destino}`;
-
-  if (waypoints) {
-    linkRotaCompleta += `&waypoints=${waypoints}`;
-  }
-
-  box.innerHTML = `
-    <div class="card destaque">
-      <h2>Rota completa</h2>
-      <p><strong>Início:</strong> ${primeiroPonto.nome_ponto}</p>
-      <p><strong>Final:</strong> ${ultimoPonto.nome_ponto}</p>
-      <p><strong>Total de paradas:</strong> ${pontos.length}</p>
-      <button onclick="abrirMaps('${linkRotaCompleta}')">
-        Abrir rota completa no Google Maps
-      </button>
-    </div>
-  `;
-}
-
-function criarLinkProximaParada(latitude, longitude) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
-}
-
-function criarLinkRotaCompleta(pontos) {
-  const primeiroPonto = pontos[0].pontos_base;
-
-  const origem = `${primeiroPonto.latitude},${primeiroPonto.longitude}`;
-  const destino = `${rotaAtual.destino_latitude},${rotaAtual.destino_longitude}`;
-
-  const waypoints = pontos
-    .slice(1)
-    .map((item) => `${item.pontos_base.latitude},${item.pontos_base.longitude}`)
-    .join("|");
-
-  let link =
-    `https://www.google.com/maps/dir/?api=1` +
-    `&origin=${origem}` +
-    `&destination=${destino}` +
-    `&travelmode=driving`;
-
-  if (waypoints) {
-    link += `&waypoints=${waypoints}`;
-  }
-
-  return link;
-}
-
-function abrirDestinoFinal() {
-  if (!rotaAtual || !rotaAtual.destino_latitude || !rotaAtual.destino_longitude) {
-    alert("Destino final não encontrado.");
+  if (!primeiroPonto || !ultimoPonto) {
+    box.innerHTML = "";
     return;
   }
 
-  const link =
-    `https://www.google.com/maps/dir/?api=1` +
-    `&destination=${rotaAtual.destino_latitude},${rotaAtual.destino_longitude}` +
-    `&travelmode=driving`;
+  const totalPassageiros = pontos.reduce((total, item) => {
+    return total + Number(item.qtd_passageiros || 0);
+  }, 0);
 
-  abrirMaps(link);
-}
-
-function abrirMaps(link) {
-  window.open(link, "_blank");
+  box.innerHTML = `
+    <div class="card destaque">
+      <h2>Resumo da rota</h2>
+      <p><strong>Início:</strong> ${primeiroPonto.nome}</p>
+      <p><strong>Final:</strong> ${ultimoPonto.nome}</p>
+      <p><strong>Total de paradas:</strong> ${pontos.length}</p>
+      <p><strong>Total de passageiros:</strong> ${totalPassageiros}</p>
+    </div>
+  `;
 }
 
 async function alterarStatus(id, novoStatus) {
