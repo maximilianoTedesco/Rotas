@@ -139,12 +139,7 @@ function iniciarMapa() {
     const lng = e.latlng.lng.toFixed(6);
     const coordenada = `${lat}, ${lng}`;
 
-    if (modoSelecao === "destino") {
-      document.getElementById("destinoCoordenadas").value = coordenada;
-      modoSelecao = "ponto";
-    } else {
-      document.getElementById("coordenadasPontoBase").value = coordenada;
-    }
+     document.getElementById("coordenadasPontoBase").value = coordenada;
 
     if (marcador) {
       mapa.removeLayer(marcador);
@@ -154,10 +149,7 @@ function iniciarMapa() {
   });
 }
 
-function ativarModoDestino() {
-  modoSelecao = "destino";
-  alert("Agora clique no mapa para selecionar o destino final da rota.");
-}
+
 
 async function criarMotorista() {
   const nome = document.getElementById("nomeMotorista").value.trim();
@@ -464,6 +456,8 @@ async function carregarPontosBase() {
     console.error("Erro ao buscar pontos fixos:", error);
     return;
   }
+  
+  pontosBaseCache = data || [];
 
   const lista = document.getElementById("listaPontosBase");
   const select = document.getElementById("selectPontoBase");
@@ -521,90 +515,7 @@ async function desativarPontoBase(id) {
   await carregarPontosBase();
 }
 
-async function salvarRota() {
-  const nome = document.getElementById("nomeRota").value.trim();
-  const data = document.getElementById("dataRota").value;
-  const horarioInicio = document.getElementById("horarioInicio").value;
-  const motoristaId = document.getElementById("motoristaRota").value;
 
-  if (!nome || !data || !horarioInicio || !motoristaId) {
-    alert("Preencha nome da rota, data, horário inicial e motorista.");
-    return;
-  }
-
-  if (pontosTemporarios.length < 2) {
-    alert("Adicione pelo menos 2 pontos na rota antes de salvar.");
-    return;
-  }
-
-  const dadosRota = {
-    nome,
-    data,
-    horario_inicio: horarioInicio,
-    motorista_id: motoristaId,
-    destino_nome: null,
-    destino_latitude: null,
-    destino_longitude: null,
-    status: "ativa"
-  };
-
-  let idRotaFinal = rotaAtualId;
-
-  if (rotaAtualId) {
-    const { error } = await supabaseClient
-      .from("rotas")
-      .update(dadosRota)
-      .eq("id", rotaAtualId);
-
-    if (error) {
-      alert("Erro ao atualizar rota: " + error.message);
-      return;
-    }
-
-    await supabaseClient
-      .from("rota_pontos")
-      .delete()
-      .eq("rota_id", rotaAtualId);
-  } else {
-    const { data: rotaCriada, error } = await supabaseClient
-      .from("rotas")
-      .insert(dadosRota)
-      .select()
-      .single();
-
-    if (error) {
-      alert("Erro ao criar rota: " + error.message);
-      return;
-    }
-
-    idRotaFinal = rotaCriada.id;
-    rotaAtualId = idRotaFinal;
-    localStorage.setItem("rotaAtualId", rotaAtualId);
-  }
-
-  const pontosParaSalvar = pontosTemporarios.map((ponto, index) => ({
-    rota_id: idRotaFinal,
-    ponto_base_id: ponto.ponto_base_id,
-    ordem: index + 1,
-    horario_previsto: ponto.horario_previsto,
-    qtd_passageiros: ponto.qtd_passageiros,
-    observacao: ponto.observacao,
-    status: "pendente"
-  }));
-
-  const { error: erroPontos } = await supabaseClient
-    .from("rota_pontos")
-    .insert(pontosParaSalvar);
-
-  if (erroPontos) {
-    alert("Rota criada, mas houve erro ao salvar os pontos: " + erroPontos.message);
-    return;
-  }
-
-  alert("Rota e pontos salvos com sucesso!");
-  atualizarTextoRota();
-  await listarPontosRota();
-}
 
 async function carregarRotaAtual() {
   const rotaIdSalva = localStorage.getItem("rotaAtualId");
@@ -646,12 +557,6 @@ async function carregarRotaAtual() {
   document.getElementById("nomeRota").value = rota.nome || "";
   document.getElementById("dataRota").value = rota.data || "";
   document.getElementById("horarioInicio").value = rota.horario_inicio || "";
-  document.getElementById("destinoNome").value = rota.destino_nome || "";
-
-  if (rota.destino_latitude && rota.destino_longitude) {
-    document.getElementById("destinoCoordenadas").value =
-      `${rota.destino_latitude}, ${rota.destino_longitude}`;
-  }
 
   await carregarMotoristas();
 
@@ -675,51 +580,6 @@ function atualizarTextoRota() {
   texto.textContent = "Rota carregada. Agora adicione pontos cadastrados dentro dela.";
 }
 
-function limparFormularioRota() {
-  rotaAtualId = null;
-  localStorage.removeItem("rotaAtualId");
-
-  document.getElementById("nomeRota").value = "";
-  document.getElementById("dataRota").value = "";
-  document.getElementById("horarioInicio").value = "";
-  document.getElementById("motoristaRota").value = "";
-  document.getElementById("destinoNome").value = "";
-  document.getElementById("destinoCoordenadas").value = "";
-
-  const lista = document.getElementById("listaPontosRota");
-
-  if (lista) {
-    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
-  }
-
-  atualizarTextoRota();
-}
-
-async function adicionarPontoNaRota() {
-  const pontoBaseId = document.getElementById("selectPontoBase").value;
-  const horarioPrevisto = document.getElementById("horarioPrevisto").value;
-  const qtdPassageiros = Number(document.getElementById("qtdPassageiros").value || 0);
-  const observacao = document.getElementById("observacao").value.trim();
-
-  if (!pontoBaseId || !horarioPrevisto) {
-    alert("Selecione um ponto e informe o horário previsto.");
-    return;
-  }
-
-  pontosTemporarios.push({
-    ponto_base_id: pontoBaseId,
-    horario_previsto: horarioPrevisto,
-    qtd_passageiros: qtdPassageiros,
-    observacao
-  });
-
-  document.getElementById("selectPontoBase").value = "";
-  document.getElementById("horarioPrevisto").value = "";
-  document.getElementById("qtdPassageiros").value = "";
-  document.getElementById("observacao").value = "";
-
-  listarPontosTemporarios();
-}
 
 async function buscarPontosRota() {
   if (!rotaAtualId) return [];
@@ -746,59 +606,7 @@ async function buscarPontosRota() {
   return data || [];
 }
 
-async function listarPontosRota() {
-  const pontos = await buscarPontosRota();
-  const lista = document.getElementById("listaPontosRota");
 
-  if (!lista) return;
-
-  lista.innerHTML = "";
-
-  if (pontos.length === 0) {
-    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
-    return;
-  }
-
-  pontos.forEach((item, index) => {
-    const ponto = item.pontos_base;
-
-    const linkMaps =
-      `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}&travelmode=driving`;
-
-    const div = document.createElement("div");
-    div.className = "ponto";
-
-    div.innerHTML = `
-      <h3>${index + 1}. ${textoSeguro(ponto.nome)}</h3>
-      <p><strong>Horário:</strong> ${item.horario_previsto || "Não informado"}</p>
-      <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
-      <p><strong>Endereço:</strong> ${textoSeguro(ponto.endereco || "Não informado")}</p>
-      <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
-      <p><strong>Status:</strong> ${traduzirStatusPonto(item.status)}</p>
-      <p><strong>Observação:</strong> ${textoSeguro(item.observacao || "Sem observação")}</p>
-
-      <div class="acoes">
-        <button class="btn-azul" onclick="abrirMaps('${linkMaps}')">
-          Abrir Google Maps
-        </button>
-
-        <button class="btn-cinza" onclick="moverPonto('${item.id}', ${item.ordem}, 'cima')">
-          Subir
-        </button>
-
-        <button class="btn-cinza" onclick="moverPonto('${item.id}', ${item.ordem}, 'baixo')">
-          Descer
-        </button>
-
-        <button class="btn-vermelho" onclick="removerPontoDaRota('${item.id}')">
-          Remover
-        </button>
-      </div>
-    `;
-
-    lista.appendChild(div);
-  });
-}
 
 async function moverPonto(id, ordemAtual, direcao) {
   const pontos = await buscarPontosRota();
@@ -1341,6 +1149,238 @@ function moverPontoTemporario(index, direcao) {
 function removerPontoTemporario(index) {
   pontosTemporarios.splice(index, 1);
   listarPontosTemporarios();
+}
+
+async function salvarRota() {
+  const nome = document.getElementById("nomeRota").value.trim();
+  const data = document.getElementById("dataRota").value;
+  const horarioInicio = document.getElementById("horarioInicio").value;
+  const motoristaId = document.getElementById("motoristaRota").value;
+
+  if (!nome || !data || !horarioInicio || !motoristaId) {
+    alert("Preencha nome da rota, data, horário inicial e motorista.");
+    return;
+  }
+
+  if (pontosTemporarios.length < 2) {
+    alert("Adicione pelo menos 2 pontos antes de salvar a rota.");
+    return;
+  }
+
+  const dadosRota = {
+    nome,
+    data,
+    horario_inicio: horarioInicio,
+    motorista_id: motoristaId,
+    destino_nome: null,
+    destino_latitude: null,
+    destino_longitude: null,
+    status: "ativa"
+  };
+
+  let idRotaFinal = rotaAtualId;
+
+  if (rotaAtualId) {
+    const { error } = await supabaseClient
+      .from("rotas")
+      .update(dadosRota)
+      .eq("id", rotaAtualId);
+
+    if (error) {
+      alert("Erro ao atualizar rota: " + error.message);
+      return;
+    }
+
+    await supabaseClient
+      .from("rota_pontos")
+      .delete()
+      .eq("rota_id", rotaAtualId);
+  } else {
+    const { data: rotaCriada, error } = await supabaseClient
+      .from("rotas")
+      .insert(dadosRota)
+      .select()
+      .single();
+
+    if (error) {
+      alert("Erro ao criar rota: " + error.message);
+      return;
+    }
+
+    idRotaFinal = rotaCriada.id;
+    rotaAtualId = idRotaFinal;
+    localStorage.setItem("rotaAtualId", rotaAtualId);
+  }
+
+  const pontosParaSalvar = pontosTemporarios.map((ponto, index) => ({
+    rota_id: idRotaFinal,
+    ponto_base_id: ponto.ponto_base_id,
+    ordem: index + 1,
+    horario_previsto: ponto.horario_previsto,
+    qtd_passageiros: ponto.qtd_passageiros,
+    observacao: ponto.observacao,
+    status: "pendente"
+  }));
+
+  const { error: erroPontos } = await supabaseClient
+    .from("rota_pontos")
+    .insert(pontosParaSalvar);
+
+  if (erroPontos) {
+    alert("Rota salva, mas houve erro ao salvar os pontos: " + erroPontos.message);
+    return;
+  }
+
+  alert("Rota e pontos salvos com sucesso!");
+
+  pontosTemporarios = [];
+  listarPontosTemporarios();
+
+  atualizarTextoRota();
+  await listarPontosRota();
+  await carregarGerenciamentoRotas();
+}
+
+async function adicionarPontoNaRota() {
+  const pontoBaseId = document.getElementById("selectPontoBase").value;
+  const horarioPrevisto = document.getElementById("horarioPrevisto").value;
+  const qtdPassageiros = Number(document.getElementById("qtdPassageiros").value || 0);
+  const observacao = document.getElementById("observacao").value.trim();
+
+  if (!pontoBaseId || !horarioPrevisto) {
+    alert("Selecione um ponto e informe o horário previsto.");
+    return;
+  }
+
+  pontosTemporarios.push({
+    ponto_base_id: pontoBaseId,
+    horario_previsto: horarioPrevisto,
+    qtd_passageiros: qtdPassageiros,
+    observacao
+  });
+
+  document.getElementById("selectPontoBase").value = "";
+  document.getElementById("horarioPrevisto").value = "";
+  document.getElementById("qtdPassageiros").value = "";
+  document.getElementById("observacao").value = "";
+
+  listarPontosTemporarios();
+}
+
+function listarPontosTemporarios() {
+  const lista = document.getElementById("listaPontosRota");
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (pontosTemporarios.length === 0) {
+    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
+    return;
+  }
+
+  pontosTemporarios.forEach((item, index) => {
+    const ponto = pontosBaseCache.find((p) => String(p.id) === String(item.ponto_base_id));
+
+    const div = document.createElement("div");
+    div.className = "ponto";
+
+    div.innerHTML = `
+      <h3>${index + 1}. ${textoSeguro(ponto ? ponto.nome : "Ponto não encontrado")}</h3>
+      <p><strong>Horário:</strong> ${item.horario_previsto}</p>
+      <p><strong>Passageiros:</strong> ${item.qtd_passageiros}</p>
+      <p><strong>Observação:</strong> ${textoSeguro(item.observacao || "Sem observação")}</p>
+
+      <button type="button" onclick="moverPontoTemporario(${index}, 'cima')">Subir</button>
+      <button type="button" onclick="moverPontoTemporario(${index}, 'baixo')">Descer</button>
+      <button type="button" onclick="removerPontoTemporario(${index})">Remover</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+function moverPontoTemporario(index, direcao) {
+  const novoIndex = direcao === "cima" ? index - 1 : index + 1;
+
+  if (novoIndex < 0 || novoIndex >= pontosTemporarios.length) {
+    return;
+  }
+
+  const pontoAtual = pontosTemporarios[index];
+  pontosTemporarios[index] = pontosTemporarios[novoIndex];
+  pontosTemporarios[novoIndex] = pontoAtual;
+
+  listarPontosTemporarios();
+}
+
+function removerPontoTemporario(index) {
+  pontosTemporarios.splice(index, 1);
+  listarPontosTemporarios();
+}
+
+async function listarPontosRota() {
+  const pontos = await buscarPontosRota();
+  const lista = document.getElementById("listaPontosRotaSalva");
+
+  if (!lista) return;
+
+  lista.innerHTML = "";
+
+  if (pontos.length === 0) {
+    lista.innerHTML = "<p>Nenhum ponto salvo nesta rota ainda.</p>";
+    return;
+  }
+
+  pontos.forEach((item, index) => {
+    const ponto = item.pontos_base;
+    const linkMaps = `https://www.google.com/maps/dir/?api=1&destination=${ponto.latitude},${ponto.longitude}&travelmode=driving`;
+
+    const div = document.createElement("div");
+    div.className = "ponto";
+
+    div.innerHTML = `
+      <h3>${index + 1}. ${textoSeguro(ponto.nome)}</h3>
+      <p><strong>Horário:</strong> ${item.horario_previsto || "Não informado"}</p>
+      <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
+      <p><strong>Endereço:</strong> ${textoSeguro(ponto.endereco || "Não informado")}</p>
+      <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
+      <p><strong>Status:</strong> ${traduzirStatusPonto(item.status)}</p>
+      <p><strong>Observação:</strong> ${textoSeguro(item.observacao || "Sem observação")}</p>
+
+      <button type="button" onclick="abrirMaps('${linkMaps}')">Abrir Google Maps</button>
+      <button type="button" onclick="moverPonto('${item.id}', ${item.ordem}, 'cima')">Subir</button>
+      <button type="button" onclick="moverPonto('${item.id}', ${item.ordem}, 'baixo')">Descer</button>
+      <button type="button" onclick="removerPontoDaRota('${item.id}')">Remover</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+function limparFormularioRota() {
+  rotaAtualId = null;
+  pontosTemporarios = [];
+
+  localStorage.removeItem("rotaAtualId");
+
+  document.getElementById("nomeRota").value = "";
+  document.getElementById("dataRota").value = "";
+  document.getElementById("horarioInicio").value = "";
+  document.getElementById("motoristaRota").value = "";
+
+  document.getElementById("selectPontoBase").value = "";
+  document.getElementById("horarioPrevisto").value = "";
+  document.getElementById("qtdPassageiros").value = "";
+  document.getElementById("observacao").value = "";
+
+  listarPontosTemporarios();
+
+  const listaSalva = document.getElementById("listaPontosRotaSalva");
+  if (listaSalva) {
+    listaSalva.innerHTML = "<p>Nenhum ponto salvo nesta rota ainda.</p>";
+  }
+
+  atualizarTextoRota();
 }
 
 iniciarPagina();
