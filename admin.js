@@ -7,6 +7,8 @@ let mapa;
 let marcador;
 let rotaAtualId = null;
 let modoSelecao = "ponto";
+let pontosTemporarios = [];
+let pontosBaseCache = [];
 
 function textoSeguro(valor) {
   return String(valor || "")
@@ -458,7 +460,7 @@ async function carregarPontosBase() {
     .eq("ativo", true)
     .order("nome", { ascending: true });
 
-  if (error) {
+  if (error) pontosBaseCache = data || [];{
     console.error("Erro ao buscar pontos fixos:", error);
     return;
   }
@@ -530,6 +532,11 @@ async function salvarRota() {
     return;
   }
 
+  if (pontosTemporarios.length < 2) {
+    alert("Adicione pelo menos 2 pontos na rota antes de salvar.");
+    return;
+  }
+
   const dadosRota = {
     nome,
     data,
@@ -540,6 +547,8 @@ async function salvarRota() {
     destino_longitude: null,
     status: "ativa"
   };
+
+  let idRotaFinal = rotaAtualId;
 
   if (rotaAtualId) {
     const { error } = await supabaseClient
@@ -552,7 +561,10 @@ async function salvarRota() {
       return;
     }
 
-    alert("Rota atualizada com sucesso!");
+    await supabaseClient
+      .from("rota_pontos")
+      .delete()
+      .eq("rota_id", rotaAtualId);
   } else {
     const { data: rotaCriada, error } = await supabaseClient
       .from("rotas")
@@ -565,15 +577,33 @@ async function salvarRota() {
       return;
     }
 
-    rotaAtualId = rotaCriada.id;
+    idRotaFinal = rotaCriada.id;
+    rotaAtualId = idRotaFinal;
     localStorage.setItem("rotaAtualId", rotaAtualId);
-
-    alert("Rota criada com sucesso! Agora adicione os pontos.");
   }
 
+  const pontosParaSalvar = pontosTemporarios.map((ponto, index) => ({
+    rota_id: idRotaFinal,
+    ponto_base_id: ponto.ponto_base_id,
+    ordem: index + 1,
+    horario_previsto: ponto.horario_previsto,
+    qtd_passageiros: ponto.qtd_passageiros,
+    observacao: ponto.observacao,
+    status: "pendente"
+  }));
+
+  const { error: erroPontos } = await supabaseClient
+    .from("rota_pontos")
+    .insert(pontosParaSalvar);
+
+  if (erroPontos) {
+    alert("Rota criada, mas houve erro ao salvar os pontos: " + erroPontos.message);
+    return;
+  }
+
+  alert("Rota e pontos salvos com sucesso!");
   atualizarTextoRota();
   await listarPontosRota();
-  await carregarGerenciamentoRotas();
 }
 
 async function carregarRotaAtual() {
@@ -666,11 +696,6 @@ function limparFormularioRota() {
 }
 
 async function adicionarPontoNaRota() {
-  if (!rotaAtualId) {
-    alert("Salve primeiro a rota.");
-    return;
-  }
-
   const pontoBaseId = document.getElementById("selectPontoBase").value;
   const horarioPrevisto = document.getElementById("horarioPrevisto").value;
   const qtdPassageiros = Number(document.getElementById("qtdPassageiros").value || 0);
@@ -681,37 +706,19 @@ async function adicionarPontoNaRota() {
     return;
   }
 
-  const { count } = await supabaseClient
-    .from("rota_pontos")
-    .select("*", { count: "exact", head: true })
-    .eq("rota_id", rotaAtualId);
-
-  const ordem = (count || 0) + 1;
-
-  const { error } = await supabaseClient
-    .from("rota_pontos")
-    .insert({
-      rota_id: rotaAtualId,
-      ponto_base_id: pontoBaseId,
-      ordem,
-      horario_previsto: horarioPrevisto,
-      qtd_passageiros: qtdPassageiros,
-      observacao,
-      status: "pendente"
-    });
-
-  if (error) {
-    alert("Erro ao adicionar ponto na rota: " + error.message);
-    return;
-  }
+  pontosTemporarios.push({
+    ponto_base_id: pontoBaseId,
+    horario_previsto: horarioPrevisto,
+    qtd_passageiros: qtdPassageiros,
+    observacao
+  });
 
   document.getElementById("selectPontoBase").value = "";
   document.getElementById("horarioPrevisto").value = "";
   document.getElementById("qtdPassageiros").value = "";
   document.getElementById("observacao").value = "";
 
-  await listarPontosRota();
-  await carregarGerenciamentoRotas();
+  listarPontosTemporarios();
 }
 
 async function buscarPontosRota() {
@@ -1285,6 +1292,55 @@ async function iniciarPagina() {
   await carregarGerenciamentoRotas();
 
   atualizarEstadoVisualPainel(null);
+}
+
+function listarPontosTemporarios() {
+  const lista = document.getElementById("listaPontosRota");
+  lista.innerHTML = "";
+
+  if (pontosTemporarios.length === 0) {
+    lista.innerHTML = "<p>Nenhum ponto adicionado nesta rota ainda.</p>";
+    return;
+  }
+
+  pontosTemporarios.forEach((item, index) => {
+    const ponto = pontosBaseCache.find((p) => String(p.id) === String(item.ponto_base_id));
+
+    const div = document.createElement("div");
+    div.className = "ponto";
+
+    div.innerHTML = `
+      <h3>${index + 1}. ${ponto ? ponto.nome : "Ponto não encontrado"}</h3>
+      <p><strong>Horário:</strong> ${item.horario_previsto}</p>
+      <p><strong>Passageiros:</strong> ${item.qtd_passageiros}</p>
+      <p><strong>Observação:</strong> ${item.observacao || "Sem observação"}</p>
+
+      <button onclick="moverPontoTemporario(${index}, 'cima')">Subir</button>
+      <button onclick="moverPontoTemporario(${index}, 'baixo')">Descer</button>
+      <button onclick="removerPontoTemporario(${index})">Remover</button>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+function moverPontoTemporario(index, direcao) {
+  const novoIndex = direcao === "cima" ? index - 1 : index + 1;
+
+  if (novoIndex < 0 || novoIndex >= pontosTemporarios.length) {
+    return;
+  }
+
+  const pontoAtual = pontosTemporarios[index];
+  pontosTemporarios[index] = pontosTemporarios[novoIndex];
+  pontosTemporarios[novoIndex] = pontoAtual;
+
+  listarPontosTemporarios();
+}
+
+function removerPontoTemporario(index) {
+  pontosTemporarios.splice(index, 1);
+  listarPontosTemporarios();
 }
 
 iniciarPagina();
