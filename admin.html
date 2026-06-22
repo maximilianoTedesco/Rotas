@@ -8,7 +8,7 @@
   <title>ADM | Rotas Algarve</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css?v=10" />
+  <link rel="stylesheet" href="admin.css?v=11" />
 </head>
 
 <body>
@@ -57,15 +57,10 @@
           <span>Consultar ou desativar pontos.</span>
         </button>
 
-        <button type="button" class="opcao-card" data-painel="moduloCriarRota" onclick="abrirPainel('moduloCriarRota')">
-          <strong>🛣️ Criar / atualizar rota</strong>
-          <span>Definir motorista, data e destino.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloAdicionarPontoRota"
-          onclick="abrirPainel('moduloAdicionarPontoRota')">
-          <strong>➕ Pontos da rota</strong>
-          <span>Adicionar recolhas à rota atual.</span>
+        <button type="button" class="opcao-card" data-painel="moduloCriarRota"
+          onclick="abrirPainel('moduloCriarRota')">
+          <strong>🛣️ Criar rota com pontos</strong>
+          <span>Criar rota, adicionar pontos e salvar tudo junto.</span>
         </button>
 
         <button type="button" class="opcao-card" data-painel="moduloRotaMontada"
@@ -87,6 +82,7 @@
     </section>
 
     <div class="modulos-wrapper">
+
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista"
           onclick="toggleModulo('moduloCadastrarMotorista')">
@@ -166,7 +162,7 @@
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
           onclick="toggleModulo('moduloCriarRota')">
-          🛣️ Criar / atualizar rota
+          🛣️ Criar rota com pontos
         </button>
 
         <div class="modulo-conteudo" id="moduloCriarRota">
@@ -184,25 +180,13 @@
             <option value="">Selecione o motorista</option>
           </select>
 
-          <button type="button" class="btn-verde" onclick="salvarRota()">
-            Salvar / atualizar rota
-          </button>
+          <hr />
 
-          <button type="button" class="btn-cinza" onclick="limparFormularioRota()">
-            Nova rota em branco
-          </button>
+          <h3>Adicionar pontos da rota</h3>
+          <p class="aviso">
+            Adicione os pontos abaixo antes de salvar. O último ponto adicionado será o destino final da rota.
+          </p>
 
-          <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
-        </div>
-      </section>
-
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloAdicionarPontoRota"
-          onclick="toggleModulo('moduloAdicionarPontoRota')">
-          ➕ Adicionar ponto cadastrado na rota
-        </button>
-
-        <div class="modulo-conteudo" id="moduloAdicionarPontoRota">
           <label for="selectPontoBase">Ponto cadastrado</label>
           <select id="selectPontoBase"></select>
 
@@ -215,9 +199,21 @@
           <label for="observacao">Observação</label>
           <textarea id="observacao" placeholder="Ex: esperar junto à paragem"></textarea>
 
-          <button type="button" class="btn-verde" onclick="adicionarPontoNaRota()">
-            Adicionar à rota
+          <button type="button" class="btn-azul" onclick="adicionarPontoNaRota()">
+            Adicionar ponto na lista
           </button>
+
+          <div id="listaPontosRota"></div>
+
+          <button type="button" class="btn-verde" onclick="salvarRota()">
+            Salvar rota com pontos
+          </button>
+
+          <button type="button" class="btn-cinza" onclick="limparFormularioRota()">
+            Nova rota em branco
+          </button>
+
+          <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
         </div>
       </section>
 
@@ -228,7 +224,7 @@
         </button>
 
         <div class="modulo-conteudo" id="moduloRotaMontada">
-          <div id="listaPontosRota"></div>
+          <div id="listaPontosRotaSalva"></div>
 
           <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
             Abrir rota completa no Google Maps
@@ -260,12 +256,13 @@
           </div>
         </div>
       </section>
+
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=10"></script>
+  <script src="admin.js?v=11"></script>
 </body>
 
 </html>
