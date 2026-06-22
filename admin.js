@@ -5,6 +5,8 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let mapa;
 let marcador;
+let linhaRota = null;
+let marcadoresRota = [];
 let rotaAtualId = null;
 let modoSelecao = "ponto";
 let pontosTemporarios = [];
@@ -1115,6 +1117,133 @@ function removerPontoTemporario(index) {
   listarPontosTemporarios();
 }
 
+function calcularDistanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function calcularResumoRota(pontos) {
+  let distanciaTotal = 0;
+  let totalPassageiros = 0;
+
+  for (let i = 0; i < pontos.length; i++) {
+    totalPassageiros += Number(pontos[i].qtd_passageiros || 0);
+
+    if (i > 0) {
+      const pontoAnterior = pontosBaseCache.find(
+        (p) => String(p.id) === String(pontos[i - 1].ponto_base_id)
+      );
+
+      const pontoAtual = pontosBaseCache.find(
+        (p) => String(p.id) === String(pontos[i].ponto_base_id)
+      );
+
+      if (pontoAnterior && pontoAtual) {
+        distanciaTotal += calcularDistanciaKm(
+          Number(pontoAnterior.latitude),
+          Number(pontoAnterior.longitude),
+          Number(pontoAtual.latitude),
+          Number(pontoAtual.longitude)
+        );
+      }
+    }
+  }
+
+  const tempoEstimadoMin = Math.ceil((distanciaTotal / 35) * 60) + (pontos.length * 2);
+
+  return {
+    distanciaTotal,
+    tempoEstimadoMin,
+    totalPassageiros
+  };
+}
+
+function limparDesenhoRota() {
+  if (linhaRota) {
+    mapa.removeLayer(linhaRota);
+    linhaRota = null;
+  }
+
+  marcadoresRota.forEach((m) => mapa.removeLayer(m));
+  marcadoresRota = [];
+}
+
+function desenharRotaNoMapa(pontos) {
+  if (!mapa) return;
+
+  limparDesenhoRota();
+
+  const coordenadas = [];
+
+  pontos.forEach((item, index) => {
+    const ponto = pontosBaseCache.find(
+      (p) => String(p.id) === String(item.ponto_base_id)
+    );
+
+    if (!ponto) return;
+
+    const lat = Number(ponto.latitude);
+    const lng = Number(ponto.longitude);
+
+    coordenadas.push([lat, lng]);
+
+    const marker = L.marker([lat, lng])
+      .addTo(mapa)
+      .bindPopup(`${index + 1}. ${ponto.nome}`);
+
+    marcadoresRota.push(marker);
+  });
+
+  if (coordenadas.length >= 2) {
+    linhaRota = L.polyline(coordenadas, {
+      weight: 5
+    }).addTo(mapa);
+
+    mapa.fitBounds(linhaRota.getBounds(), {
+      padding: [30, 30]
+    });
+  }
+}
+
+function atualizarResumoRotaTemporaria() {
+  const resumo = document.getElementById("resumoRotaTemporaria");
+
+  if (!resumo) return;
+
+  if (pontosTemporarios.length < 2) {
+    resumo.innerHTML = `
+      <strong>Resumo da rota:</strong><br>
+      Adicione pelo menos 2 pontos para calcular distância e tempo.
+    `;
+    limparDesenhoRota();
+    return;
+  }
+
+  const dados = calcularResumoRota(pontosTemporarios);
+
+  resumo.innerHTML = `
+    <strong>Resumo da rota:</strong><br>
+    Distância aproximada: ${dados.distanciaTotal.toFixed(1)} km<br>
+    Tempo estimado: ${dados.tempoEstimadoMin} min<br>
+    Passageiros: ${dados.totalPassageiros}<br>
+    Paragens: ${pontosTemporarios.length}
+  `;
+
+  desenharRotaNoMapa(pontosTemporarios);
+}
+
 async function salvarRota() {
   const nome = document.getElementById("nomeRota").value.trim();
   const data = document.getElementById("dataRota").value;
@@ -1229,6 +1358,7 @@ async function adicionarPontoNaRota() {
   document.getElementById("observacao").value = "";
 
   listarPontosTemporarios();
+  atualizarResumoRotaTemporaria();
 }
 
 function listarPontosTemporarios() {
@@ -1275,11 +1405,13 @@ function moverPontoTemporario(index, direcao) {
   pontosTemporarios[novoIndex] = pontoAtual;
 
   listarPontosTemporarios();
+  atualizarResumoRotaTemporaria();
 }
 
 function removerPontoTemporario(index) {
   pontosTemporarios.splice(index, 1);
   listarPontosTemporarios();
+  atualizarResumoRotaTemporaria();
 }
 
 async function listarPontosRota() {
