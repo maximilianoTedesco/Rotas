@@ -16,14 +16,16 @@ body {
   margin: auto;
 }
 
-header {
+header,
+.card {
   background: #0f172a;
   padding: 20px;
   border-radius: 18px;
   margin-bottom: 18px;
 }
 
-header h1 {
+header h1,
+.card h2 {
   margin-bottom: 8px;
 }
 
@@ -138,12 +140,40 @@ button {
   color: #cbd5e1;
 }
 
+.mapa-card {
+  padding: 16px;
+}
+
+.mapa-ajuda {
+  color: #cbd5e1;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+#mapaMotorista {
+  width: 100%;
+  height: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  margin-top: 12px;
+  background: #1e293b;
+}
+
+.leaflet-routing-container {
+  display: none;
+}
+
+.destaque {
+  border: 1px solid #334155;
+}
+
 @media (max-width: 600px) {
   body {
     padding: 10px;
   }
 
   header,
+  .card,
   .ponto,
   .proximo-box,
   .sem-pontos {
@@ -153,6 +183,10 @@ button {
 
   .ponto h2 {
     font-size: 20px;
+  }
+
+  #mapaMotorista {
+    height: 360px;
   }
 
   button {
