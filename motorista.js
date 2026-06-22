@@ -7,6 +7,13 @@ let rotaAtual = null;
 let mapaMotorista = null;
 let controleRotaMotorista = null;
 
+let pontosCache = [];
+let navegacaoAtiva = false;
+let watchIdMotorista = null;
+let marcadorMotorista = null;
+let circuloPrecisao = null;
+let ultimaPosicaoMotorista = null;
+
 verificarLogin();
 
 async function verificarLogin() {
@@ -117,6 +124,8 @@ async function buscarPontos() {
 
 async function listarPontosMotorista() {
   const pontos = await buscarPontos();
+  pontosCache = pontos;
+
   const lista = document.getElementById("listaPontos");
 
   if (pontos.length === 0) {
@@ -141,7 +150,6 @@ async function listarPontosMotorista() {
 
   pontos.forEach((item, index) => {
     const ponto = item.pontos_base;
-
     if (!ponto) return;
 
     const div = document.createElement("div");
@@ -158,7 +166,6 @@ async function listarPontosMotorista() {
       <p><strong>Horário:</strong> ${formatarHora(item.horario_previsto)}</p>
       <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
       <p><strong>Endereço:</strong> ${ponto.endereco || "Não informado"}</p>
-      <p><strong>Coordenadas:</strong> ${ponto.latitude}, ${ponto.longitude}</p>
       <p><strong>Observação:</strong> ${item.observacao || "Sem observação"}</p>
 
       <span class="status">${traduzirStatus(item.status)}</span>
@@ -259,7 +266,6 @@ function mostrarProximoPonto(pontos) {
         <p>Todos os pontos foram marcados como coletados ou ausentes.</p>
       </div>
     `;
-
     return;
   }
 
@@ -270,15 +276,36 @@ function mostrarProximoPonto(pontos) {
     return;
   }
 
+  let distanciaHtml = "";
+
+  if (ultimaPosicaoMotorista) {
+    const distancia = calcularDistanciaMetros(
+      ultimaPosicaoMotorista.latitude,
+      ultimaPosicaoMotorista.longitude,
+      Number(ponto.latitude),
+      Number(ponto.longitude)
+    );
+
+    distanciaHtml = `
+      <p><strong>Distância até o ponto:</strong> ${formatarDistancia(distancia)}</p>
+      ${
+        distancia <= 80
+          ? `<p><strong>✅ Você está próximo deste ponto.</strong></p>`
+          : ""
+      }
+    `;
+  }
+
   box.innerHTML = `
     <div class="proximo-box destaque-proximo">
-      <h2>Próximo ponto</h2>
+      <h2>${navegacaoAtiva ? "Navegando para" : "Próximo ponto"}</h2>
 
       <p><strong>${ponto.nome}</strong></p>
       <p><strong>Horário:</strong> ${formatarHora(proximo.horario_previsto)}</p>
       <p><strong>Passageiros:</strong> ${proximo.qtd_passageiros || 0}</p>
       <p><strong>Endereço:</strong> ${ponto.endereco || "Não informado"}</p>
       <p><strong>Observação:</strong> ${proximo.observacao || "Sem observação"}</p>
+      ${distanciaHtml}
 
       <div class="botoes">
         <button class="btn-verde" onclick="alterarStatus('${proximo.id}', 'coletado')">
@@ -323,8 +350,139 @@ function mostrarRotaCompleta(pontos) {
       <p><strong>Final:</strong> ${ultimoPonto.nome}</p>
       <p><strong>Total de paradas:</strong> ${pontos.length}</p>
       <p><strong>Total de passageiros:</strong> ${totalPassageiros}</p>
+
+      <div class="botoes">
+        <button class="btn-maps" onclick="iniciarNavegacao()">
+          Iniciar navegação
+        </button>
+
+        <button class="btn-cinza" onclick="centralizarMotorista()">
+          Centralizar em mim
+        </button>
+
+        <button class="btn-vermelho" onclick="pararNavegacao()">
+          Parar navegação
+        </button>
+      </div>
     </div>
   `;
+}
+
+function iniciarNavegacao() {
+  if (!navigator.geolocation) {
+    alert("Este dispositivo não suporta localização.");
+    return;
+  }
+
+  iniciarMapaMotorista();
+
+  navegacaoAtiva = true;
+
+  watchIdMotorista = navigator.geolocation.watchPosition(
+    (position) => {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const precisao = position.coords.accuracy;
+
+      ultimaPosicaoMotorista = {
+        latitude,
+        longitude,
+        precisao
+      };
+
+      atualizarMarcadorMotorista(latitude, longitude, precisao);
+
+      mapaMotorista.setView([latitude, longitude], 17);
+
+      mostrarProximoPonto(pontosCache);
+    },
+    (error) => {
+      console.error(error);
+
+      if (error.code === 1) {
+        alert("Permissão de localização negada. Ative a localização no navegador.");
+      } else {
+        alert("Não foi possível obter sua localização.");
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 10000
+    }
+  );
+}
+
+function pararNavegacao() {
+  navegacaoAtiva = false;
+
+  if (watchIdMotorista !== null) {
+    navigator.geolocation.clearWatch(watchIdMotorista);
+    watchIdMotorista = null;
+  }
+
+  alert("Navegação encerrada.");
+}
+
+function centralizarMotorista() {
+  if (!mapaMotorista || !ultimaPosicaoMotorista) {
+    alert("Inicie a navegação primeiro para localizar o motorista.");
+    return;
+  }
+
+  mapaMotorista.setView(
+    [ultimaPosicaoMotorista.latitude, ultimaPosicaoMotorista.longitude],
+    17
+  );
+}
+
+function atualizarMarcadorMotorista(latitude, longitude, precisao) {
+  const posicao = [latitude, longitude];
+
+  if (!marcadorMotorista) {
+    marcadorMotorista = L.marker(posicao).addTo(mapaMotorista);
+    marcadorMotorista.bindPopup("Você está aqui");
+  } else {
+    marcadorMotorista.setLatLng(posicao);
+  }
+
+  if (!circuloPrecisao) {
+    circuloPrecisao = L.circle(posicao, {
+      radius: precisao
+    }).addTo(mapaMotorista);
+  } else {
+    circuloPrecisao.setLatLng(posicao);
+    circuloPrecisao.setRadius(precisao);
+  }
+}
+
+function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = grausParaRad(lat2 - lat1);
+  const dLon = grausParaRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(grausParaRad(lat1)) *
+      Math.cos(grausParaRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function grausParaRad(valor) {
+  return valor * Math.PI / 180;
+}
+
+function formatarDistancia(metros) {
+  if (metros < 1000) {
+    return `${Math.round(metros)} m`;
+  }
+
+  return `${(metros / 1000).toFixed(1)} km`;
 }
 
 async function alterarStatus(id, novoStatus) {
@@ -364,6 +522,7 @@ function formatarHora(hora) {
 }
 
 async function sair() {
+  pararNavegacao();
   await supabaseClient.auth.signOut();
   localStorage.clear();
   window.location.href = "index.html";
