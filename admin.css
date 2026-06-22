@@ -357,3 +357,14 @@ button {
 .modulo-conteudo.ativo {
   display: block !important;
 }
+
+.resumo-rota {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  color: #064e3b;
+  padding: 14px;
+  border-radius: 14px;
+  margin: 14px 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
