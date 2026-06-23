@@ -193,3 +193,16 @@ button {
     width: 100%;
   }
 }
+
+.icone-motorista {
+  width: 0;
+  height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 32px solid #2563eb;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.navegacao-ativa {
+  border: 2px solid #22c55e;
+}
