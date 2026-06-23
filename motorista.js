@@ -13,6 +13,8 @@ let watchIdMotorista = null;
 let marcadorMotorista = null;
 let circuloPrecisao = null;
 let ultimaPosicaoMotorista = null;
+let ultimoAnguloMotorista = 0;
+let wakeLock = null;
 
 verificarLogin();
 
@@ -162,7 +164,6 @@ async function listarPontosMotorista() {
 
     div.innerHTML = `
       <h2>${index + 1}. ${ponto.nome}</h2>
-
       <p><strong>Horário:</strong> ${formatarHora(item.horario_previsto)}</p>
       <p><strong>Passageiros:</strong> ${item.qtd_passageiros || 0}</p>
       <p><strong>Endereço:</strong> ${ponto.endereco || "Não informado"}</p>
@@ -188,10 +189,16 @@ async function listarPontosMotorista() {
 function iniciarMapaMotorista() {
   if (mapaMotorista) return;
 
-  mapaMotorista = L.map("mapaMotorista").setView([37.1366, -8.5377], 12);
+  mapaMotorista = L.map("mapaMotorista", {
+    zoomControl: false
+  }).setView([37.1366, -8.5377], 15);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(mapaMotorista);
+
+  L.control.zoom({
+    position: "bottomright"
   }).addTo(mapaMotorista);
 }
 
@@ -328,11 +335,8 @@ function mostrarRotaCompleta(pontos) {
     return;
   }
 
-  const primeiroItem = pontos[0];
-  const ultimoItem = pontos[pontos.length - 1];
-
-  const primeiroPonto = primeiroItem.pontos_base;
-  const ultimoPonto = ultimoItem.pontos_base;
+  const primeiroPonto = pontos[0].pontos_base;
+  const ultimoPonto = pontos[pontos.length - 1].pontos_base;
 
   if (!primeiroPonto || !ultimoPonto) {
     box.innerHTML = "";
@@ -368,15 +372,23 @@ function mostrarRotaCompleta(pontos) {
   `;
 }
 
-function iniciarNavegacao() {
+async function iniciarNavegacao() {
   if (!navigator.geolocation) {
     alert("Este dispositivo não suporta localização.");
     return;
   }
 
   iniciarMapaMotorista();
+  await ativarTelaLigada();
 
   navegacaoAtiva = true;
+
+  const mapaEl = document.getElementById("mapaMotorista");
+  if (mapaEl) mapaEl.classList.add("navegacao-ativa");
+
+  if (watchIdMotorista !== null) {
+    navigator.geolocation.clearWatch(watchIdMotorista);
+  }
 
   watchIdMotorista = navigator.geolocation.watchPosition(
     (position) => {
@@ -384,15 +396,39 @@ function iniciarNavegacao() {
       const longitude = position.coords.longitude;
       const precisao = position.coords.accuracy;
 
+      let angulo = ultimoAnguloMotorista;
+
+      if (ultimaPosicaoMotorista) {
+        const distanciaDesdeUltima = calcularDistanciaMetros(
+          ultimaPosicaoMotorista.latitude,
+          ultimaPosicaoMotorista.longitude,
+          latitude,
+          longitude
+        );
+
+        if (distanciaDesdeUltima >= 4) {
+          angulo = calcularAnguloDirecao(
+            ultimaPosicaoMotorista.latitude,
+            ultimaPosicaoMotorista.longitude,
+            latitude,
+            longitude
+          );
+
+          ultimoAnguloMotorista = angulo;
+        }
+      }
+
       ultimaPosicaoMotorista = {
         latitude,
         longitude,
         precisao
       };
 
-      atualizarMarcadorMotorista(latitude, longitude, precisao);
+      atualizarMarcadorMotorista(latitude, longitude, precisao, angulo);
 
-      mapaMotorista.setView([latitude, longitude], 17);
+      mapaMotorista.setView([latitude, longitude], 18, {
+        animate: true
+      });
 
       mostrarProximoPonto(pontosCache);
     },
@@ -407,7 +443,7 @@ function iniciarNavegacao() {
     },
     {
       enableHighAccuracy: true,
-      maximumAge: 5000,
+      maximumAge: 2000,
       timeout: 10000
     }
   );
@@ -421,6 +457,11 @@ function pararNavegacao() {
     watchIdMotorista = null;
   }
 
+  const mapaEl = document.getElementById("mapaMotorista");
+  if (mapaEl) mapaEl.classList.remove("navegacao-ativa");
+
+  desativarTelaLigada();
+
   alert("Navegação encerrada.");
 }
 
@@ -432,18 +473,35 @@ function centralizarMotorista() {
 
   mapaMotorista.setView(
     [ultimaPosicaoMotorista.latitude, ultimaPosicaoMotorista.longitude],
-    17
+    18,
+    { animate: true }
   );
 }
 
-function atualizarMarcadorMotorista(latitude, longitude, precisao) {
+function atualizarMarcadorMotorista(latitude, longitude, precisao, angulo) {
   const posicao = [latitude, longitude];
 
+  const iconeMotorista = L.divIcon({
+    className: "",
+    html: `<div class="icone-motorista"></div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+
   if (!marcadorMotorista) {
-    marcadorMotorista = L.marker(posicao).addTo(mapaMotorista);
+    marcadorMotorista = L.marker(posicao, {
+      icon: iconeMotorista,
+      rotationAngle: angulo || 0,
+      rotationOrigin: "center center"
+    }).addTo(mapaMotorista);
+
     marcadorMotorista.bindPopup("Você está aqui");
   } else {
     marcadorMotorista.setLatLng(posicao);
+
+    if (typeof marcadorMotorista.setRotationAngle === "function") {
+      marcadorMotorista.setRotationAngle(angulo || 0);
+    }
   }
 
   if (!circuloPrecisao) {
@@ -455,6 +513,51 @@ function atualizarMarcadorMotorista(latitude, longitude, precisao) {
     circuloPrecisao.setRadius(precisao);
   }
 }
+
+function calcularAnguloDirecao(lat1, lon1, lat2, lon2) {
+  const φ1 = grausParaRad(lat1);
+  const φ2 = grausParaRad(lat2);
+  const Δλ = grausParaRad(lon2 - lon1);
+
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) -
+    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+
+  const θ = Math.atan2(y, x);
+  return (θ * 180 / Math.PI + 360) % 360;
+}
+
+async function ativarTelaLigada() {
+  try {
+    if ("wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    }
+  } catch (error) {
+    console.warn("Wake Lock não disponível:", error);
+  }
+}
+
+async function desativarTelaLigada() {
+  try {
+    if (wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (error) {
+    console.warn("Erro ao liberar Wake Lock:", error);
+  }
+}
+
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && navegacaoAtiva && !wakeLock) {
+    await ativarTelaLigada();
+  }
+});
 
 function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
   const R = 6371000;
