@@ -1,170 +1,274 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Login | Rotas Algarve</title>
+  <title>ADM | Rotas Algarve</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      padding: 20px;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 420px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 22px;
-      padding: 28px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    p {
-      text-align: center;
-      color: #cbd5e1;
-      margin-bottom: 25px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      border: none;
-      margin-bottom: 16px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 14px;
-      background: #22c55e;
-      color: #fff;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .erro {
-      display: none;
-      background: #dc2626;
-      padding: 12px;
-      border-radius: 10px;
-      margin-top: 15px;
-      text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="admin.css?v=12" />
 </head>
 
 <body>
-  <div class="login-card">
-    <h1>Rotas Algarve</h1>
-    <p>Acesso administrativo e motorista</p>
+  <div class="container">
+    <header class="topo">
+      <div>
+        <span class="tag-sistema">Rotas Algarve</span>
+        <h1>Painel ADM</h1>
+        <p>Organize motoristas, pontos fixos e rotas em um fluxo mais simples.</p>
+      </div>
 
-    <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Ex: admin@rotas.pt" />
+      <div class="top-actions">
+        <button type="button" class="btn-azul" onclick="irMotorista()">
+          Ver motorista
+        </button>
 
-    <label for="senha">Senha</label>
-    <input type="password" id="senha" placeholder="Digite sua senha" />
+        <button type="button" class="btn-cinza" onclick="sair()">
+          Sair
+        </button>
+      </div>
+    </header>
 
-    <button onclick="fazerLogin()">Entrar</button>
+    <section class="card painel-opcoes">
+      <div class="painel-opcoes-topo">
+        <div>
+          <h2>Escolha uma área</h2>
+          <p>Agora o ADM está dividido em apenas 3 áreas principais.</p>
+        </div>
 
-    <div class="erro" id="erro">Email ou senha inválidos.</div>
+        <p class="painel-atual" id="painelAtualTexto">
+          Nenhum painel aberto.
+        </p>
+      </div>
+
+      <div class="grid-opcoes grid-opcoes-limpo">
+        <button type="button" class="opcao-card" data-painel="moduloMotoristas"
+          onclick="abrirPainel('moduloMotoristas')">
+          <strong>🚐 Motoristas</strong>
+          <span>Criar, editar, alterar senha e ativar/inativar.</span>
+        </button>
+
+        <button type="button" class="opcao-card" data-painel="moduloPontos"
+          onclick="abrirPainel('moduloPontos')">
+          <strong>📍 Pontos base</strong>
+          <span>Cadastrar no mapa e consultar locais salvos.</span>
+        </button>
+
+        <button type="button" class="opcao-card" data-painel="moduloCriarRota"
+          onclick="abrirPainel('moduloCriarRota')">
+          <strong>🛣️ Rotas</strong>
+          <span>Criar, salvar, abrir no Maps e gerenciar rotas.</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="modulos-wrapper">
+
+      <section class="card modulo-card">
+        <button type="button" class="modulo-titulo" data-painel="moduloMotoristas"
+          onclick="toggleModulo('moduloMotoristas')">
+          🚐 Motoristas
+          <span>Novo cadastro e gestão</span>
+        </button>
+
+        <div class="modulo-conteudo" id="moduloMotoristas">
+          <div class="duas-colunas">
+            <div class="subcard">
+              <h3>Novo motorista</h3>
+
+              <label for="nomeMotorista">Nome do motorista</label>
+              <input type="text" id="nomeMotorista" placeholder="Ex: João Silva" />
+
+              <label for="emailMotorista">E-mail do motorista</label>
+              <input type="email" id="emailMotorista" placeholder="Ex: motorista@email.com" />
+
+              <label for="senhaMotorista">Senha provisória</label>
+              <input type="password" id="senhaMotorista" placeholder="Mínimo 6 caracteres" />
+
+              <button type="button" class="btn-verde" onclick="criarMotorista()">
+                Criar motorista
+              </button>
+
+              <p class="aviso">
+                O motorista entra pela tela de login usando este e-mail e senha.
+              </p>
+            </div>
+
+            <div class="subcard">
+              <h3>Motoristas cadastrados</h3>
+              <div id="listaMotoristas">
+                <p>Carregando motoristas...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card modulo-card">
+        <button type="button" class="modulo-titulo" data-painel="moduloPontos"
+          onclick="toggleModulo('moduloPontos')">
+          📍 Pontos base
+          <span>Mapa, cadastro e lista</span>
+        </button>
+
+        <div class="modulo-conteudo" id="moduloPontos">
+          <div class="duas-colunas pontos-layout">
+            <div class="subcard">
+              <h3>Novo ponto fixo</h3>
+
+              <label for="nomePontoBase">Nome do ponto</label>
+              <input type="text" id="nomePontoBase" placeholder="Ex: Paragem Praia da Rocha" />
+
+              <label for="enderecoPontoBase">Endereço / referência</label>
+              <input type="text" id="enderecoPontoBase" placeholder="Ex: Em frente à paragem principal" />
+
+              <label for="coordenadasPontoBase">Coordenadas</label>
+              <input type="text" id="coordenadasPontoBase" readonly placeholder="Clique no mapa para selecionar" />
+
+              <p class="aviso destaque">Clique no mapa para selecionar o ponto fixo.</p>
+
+              <div id="map"></div>
+
+              <button type="button" class="btn-verde" onclick="salvarPontoBase()">
+                Salvar ponto fixo
+              </button>
+            </div>
+
+            <div class="subcard">
+              <h3>Pontos cadastrados</h3>
+              <div id="listaPontosBase"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card modulo-card">
+        <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
+          onclick="toggleModulo('moduloCriarRota')">
+          🛣️ Rotas
+          <span>Criar, visualizar e gerenciar</span>
+        </button>
+
+        <div class="modulo-conteudo" id="moduloCriarRota">
+          <div class="rota-grid">
+            <div class="subcard">
+              <h3>Dados da rota</h3>
+
+              <label for="nomeRota">Nome da rota</label>
+              <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
+
+              <div class="linha-form">
+                <div>
+                  <label for="dataRota">Data</label>
+                  <input type="date" id="dataRota" />
+                </div>
+
+                <div>
+                  <label for="horarioInicio">Horário inicial</label>
+                  <input type="time" id="horarioInicio" />
+                </div>
+              </div>
+
+              <label for="motoristaRota">Motorista responsável</label>
+              <select id="motoristaRota">
+                <option value="">Selecione o motorista</option>
+              </select>
+
+              <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
+            </div>
+
+            <div class="subcard">
+              <h3>Adicionar ponto</h3>
+              <p class="aviso">
+                O último ponto adicionado será o destino final da rota.
+              </p>
+
+              <label for="selectPontoBase">Ponto cadastrado</label>
+              <select id="selectPontoBase"></select>
+
+              <div class="linha-form">
+                <div>
+                  <label for="horarioPrevisto">Horário previsto</label>
+                  <input type="time" id="horarioPrevisto" />
+                </div>
+
+                <div>
+                  <label for="qtdPassageiros">Passageiros</label>
+                  <input type="number" id="qtdPassageiros" min="0" placeholder="Ex: 4" />
+                </div>
+              </div>
+
+              <label for="observacao">Observação</label>
+              <textarea id="observacao" placeholder="Ex: esperar junto à paragem"></textarea>
+
+              <button type="button" class="btn-azul" onclick="adicionarPontoNaRota()">
+                Adicionar ponto
+              </button>
+            </div>
+          </div>
+
+          <div class="subcard destaque-rota">
+            <div id="resumoRotaTemporaria" class="resumo-rota">
+              <strong>Resumo da rota:</strong><br>
+              Adicione pelo menos 2 pontos para calcular distância e tempo.
+            </div>
+
+            <div id="listaPontosRota"></div>
+
+            <div class="acoes principais">
+              <button type="button" class="btn-verde" onclick="salvarRota()">
+                Salvar rota com pontos
+              </button>
+
+              <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
+                Abrir rota no Google Maps
+              </button>
+
+              <button type="button" class="btn-cinza" onclick="limparFormularioRota()">
+                Nova rota em branco
+              </button>
+            </div>
+          </div>
+
+          <div class="subcard">
+            <h3>Pontos salvos da rota carregada</h3>
+            <div id="listaPontosRotaSalva"></div>
+
+            <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
+              Limpar pontos desta rota
+            </button>
+          </div>
+
+          <div class="subcard">
+            <div class="gerenciar-topo">
+              <h3>Rotas salvas</h3>
+
+              <div>
+                <label for="filtroStatusRotas">Status</label>
+                <select id="filtroStatusRotas" onchange="carregarGerenciamentoRotas()">
+                  <option value="todas">Todas</option>
+                  <option value="ativa">Ativas</option>
+                  <option value="finalizada">Finalizadas</option>
+                  <option value="cancelada">Canceladas</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="listaGerenciamentoRotas">
+              <p>Carregando rotas...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script>
-    const SUPABASE_URL = "https://sjkgbnncfigvgebghecb.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_gD75EJXrTmgeO9wD-Db7LA_UTxXrHLv";
-
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-    async function fazerLogin() {
-      const email = document.getElementById("email").value.trim();
-      const senha = document.getElementById("senha").value.trim();
-      const erro = document.getElementById("erro");
-
-      erro.style.display = "none";
-
-      if (!email || !senha) {
-        erro.textContent = "Preencha email e senha.";
-        erro.style.display = "block";
-        return;
-      }
-
-      const { data: loginData, error: loginError } =
-        await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: senha
-        });
-
-      if (loginError || !loginData.user) {
-        erro.textContent = "Email ou senha inválidos.";
-        erro.style.display = "block";
-        return;
-      }
-
-      const { data: perfilData, error: perfilError } = await supabaseClient
-        .from("perfis")
-        .select("*")
-        .eq("id", loginData.user.id)
-        .eq("ativo", true)
-        .single();
-
-      if (perfilError || !perfilData) {
-        erro.textContent = "Usuário sem perfil ativo.";
-        erro.style.display = "block";
-        await supabaseClient.auth.signOut();
-        return;
-      }
-
-      localStorage.setItem("usuarioLogado", perfilData.perfil);
-      localStorage.setItem("usuarioNome", perfilData.nome || email);
-
-      if (perfilData.perfil === "admin") {
-        window.location.href = "admin.html";
-        return;
-      }
-
-      if (perfilData.perfil === "motorista") {
-        window.location.href = "motorista.html";
-        return;
-      }
-
-      erro.textContent = "Perfil não autorizado.";
-      erro.style.display = "block";
-    }
-  </script>
+  <script src="admin.js?v=12"></script>
 </body>
+
 </html>
