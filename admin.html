@@ -8,7 +8,7 @@
   <title>ADM | Rotas Algarve</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css?v=11" />
+  <link rel="stylesheet" href="admin.css?v=12" />
 </head>
 
 <body>
@@ -61,12 +61,6 @@
           onclick="abrirPainel('moduloCriarRota')">
           <strong>🛣️ Criar rota com pontos</strong>
           <span>Criar rota, adicionar pontos e salvar tudo junto.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloRotaMontada"
-          onclick="abrirPainel('moduloRotaMontada')">
-          <strong>✅ Rota montada</strong>
-          <span>Ver sequência e abrir no Maps.</span>
         </button>
 
         <button type="button" class="opcao-card" data-painel="moduloGerenciarRotas"
@@ -218,28 +212,26 @@
             Nova rota em branco
           </button>
 
+            <hr />
+
+            <h3>Rota salva / edição</h3>
+
+            <div id="listaPontosRotaSalva"></div>
+
+            <div class="acoes">
+              <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
+                Abrir rota completa no Google Maps
+              </button>
+
+              <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
+                Limpar pontos desta rota
+              </button>
+            </div>
+
           <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
         </div>
       </section>
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloRotaMontada"
-          onclick="toggleModulo('moduloRotaMontada')">
-          ✅ Rota montada
-        </button>
-
-        <div class="modulo-conteudo" id="moduloRotaMontada">
-          <div id="listaPontosRotaSalva"></div>
-
-          <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
-            Abrir rota completa no Google Maps
-          </button>
-
-          <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
-            Limpar pontos desta rota
-          </button>
-        </div>
-      </section>
 
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloGerenciarRotas"
@@ -267,7 +259,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=11"></script>
+  <script src="admin.js?v=12"></script>
 </body>
 
 </html>

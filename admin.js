@@ -29,7 +29,6 @@ function nomePainel(id) {
     moduloPontosCadastrados: "Pontos cadastrados",
     moduloCriarRota: "Criar rota",
     moduloAdicionarPontoRota: "Adicionar pontos",
-    moduloRotaMontada: "Rota montada",
     moduloGerenciarRotas: "Gerenciar rotas"
   };
 
@@ -917,9 +916,6 @@ async function duplicarRota(id) {
     data: rotaOriginal.data,
     horario_inicio: rotaOriginal.horario_inicio,
     motorista_id: rotaOriginal.motorista_id,
-    destino_nome: rotaOriginal.destino_nome,
-    destino_latitude: rotaOriginal.destino_latitude,
-    destino_longitude: rotaOriginal.destino_longitude,
     status: "ativa"
   };
 
@@ -1265,9 +1261,6 @@ async function salvarRota() {
     data,
     horario_inicio: horarioInicio,
     motorista_id: motoristaId,
-    destino_nome: null,
-    destino_latitude: null,
-    destino_longitude: null,
     status: "ativa"
   };
 
