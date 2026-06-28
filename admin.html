@@ -15,11 +15,11 @@
   <div class="container">
     <header>
       <h1>Painel ADM</h1>
-      <p>Cadastro de motoristas, pontos fixos e montagem de rotas</p>
+      <p>Cadastro de motoristas, pontos fixos e rotas em um fluxo mais simples.</p>
 
       <div class="top-actions">
         <button type="button" class="btn-azul" onclick="irMotorista()">
-          Ver tela do motorista
+          Ver motorista
         </button>
 
         <button type="button" class="btn-cinza" onclick="sair()">
@@ -29,49 +29,31 @@
     </header>
 
     <section class="card painel-opcoes">
-      <h2>O que deseja ajustar?</h2>
-      <p>Escolha uma opção abaixo. Apenas o painel selecionado ficará aberto.</p>
+      <h2>Escolha uma área</h2>
+      <p>O ADM está dividido em apenas 3 áreas principais.</p>
 
       <div class="grid-opcoes">
         <button type="button" class="opcao-card" data-painel="moduloCadastrarMotorista"
           onclick="abrirPainel('moduloCadastrarMotorista')">
-          <strong>🚐 Cadastrar motorista</strong>
-          <span>Criar novo acesso para motorista.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloGerenciarMotoristas"
-          onclick="abrirPainel('moduloGerenciarMotoristas')">
-          <strong>👥 Gerenciar motoristas</strong>
-          <span>Editar dados, senha ou status.</span>
+          <strong>🚐 Motoristas</strong>
+          <span>Cadastrar, editar, alterar senha e ativar/inativar.</span>
         </button>
 
         <button type="button" class="opcao-card" data-painel="moduloCadastrarPonto"
           onclick="abrirPainel('moduloCadastrarPonto')">
-          <strong>📍 Cadastrar ponto fixo</strong>
-          <span>Salvar locais usando o mapa.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloPontosCadastrados"
-          onclick="abrirPainel('moduloPontosCadastrados')">
-          <strong>📋 Pontos cadastrados</strong>
-          <span>Consultar ou desativar pontos.</span>
+          <strong>📍 Pontos base</strong>
+          <span>Cadastrar no mapa e consultar locais salvos.</span>
         </button>
 
         <button type="button" class="opcao-card" data-painel="moduloCriarRota"
           onclick="abrirPainel('moduloCriarRota')">
-          <strong>🛣️ Criar rota com pontos</strong>
-          <span>Criar rota, adicionar pontos e salvar tudo junto.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloGerenciarRotas"
-          onclick="abrirPainel('moduloGerenciarRotas')">
-          <strong>🧭 Gerenciar rotas</strong>
-          <span>Editar, duplicar ou finalizar rotas.</span>
+          <strong>🗺️ Rotas</strong>
+          <span>Criar, salvar, abrir no Maps e gerenciar rotas.</span>
         </button>
       </div>
 
       <p class="painel-atual" id="painelAtualTexto">
-        Nenhum painel aberto. Escolha uma opção acima.
+        Nenhum painel aberto.
       </p>
     </section>
 
@@ -80,10 +62,13 @@
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista"
           onclick="toggleModulo('moduloCadastrarMotorista')">
-          🚐 Cadastrar motorista
+          🚐 Motoristas
+          <span>Novo cadastro e gestão</span>
         </button>
 
         <div class="modulo-conteudo" id="moduloCadastrarMotorista">
+          <h3>Novo motorista</h3>
+
           <label for="nomeMotorista">Nome do motorista</label>
           <input type="text" id="nomeMotorista" placeholder="Ex: João Silva" />
 
@@ -98,18 +83,13 @@
           </button>
 
           <p class="aviso">
-            Após criar o motorista, ele poderá entrar pela tela de login usando o e-mail e a senha cadastrados.
+            Após criar, o motorista poderá entrar pela tela de login usando o e-mail e a senha cadastrados.
           </p>
-        </div>
-      </section>
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarMotoristas"
-          onclick="toggleModulo('moduloGerenciarMotoristas')">
-          👥 Gerenciar motoristas
-        </button>
+          <hr />
 
-        <div class="modulo-conteudo" id="moduloGerenciarMotoristas">
+          <h3>Motoristas cadastrados</h3>
+
           <div id="listaMotoristas">
             <p>Carregando motoristas...</p>
           </div>
@@ -119,10 +99,13 @@
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloCadastrarPonto"
           onclick="toggleModulo('moduloCadastrarPonto')">
-          📍 Cadastrar ponto fixo
+          📍 Pontos base
+          <span>Mapa, cadastro e lista</span>
         </button>
 
         <div class="modulo-conteudo" id="moduloCadastrarPonto">
+          <h3>Novo ponto fixo</h3>
+
           <label for="nomePontoBase">Nome do ponto</label>
           <input type="text" id="nomePontoBase" placeholder="Ex: Paragem Praia da Rocha" />
 
@@ -139,16 +122,11 @@
           <button type="button" class="btn-verde" onclick="salvarPontoBase()">
             Salvar ponto fixo
           </button>
-        </div>
-      </section>
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloPontosCadastrados"
-          onclick="toggleModulo('moduloPontosCadastrados')">
-          📋 Pontos fixos cadastrados
-        </button>
+          <hr />
 
-        <div class="modulo-conteudo" id="moduloPontosCadastrados">
+          <h3>Pontos cadastrados</h3>
+
           <div id="listaPontosBase"></div>
         </div>
       </section>
@@ -156,10 +134,13 @@
       <section class="card modulo-card">
         <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
           onclick="toggleModulo('moduloCriarRota')">
-          🛣️ Criar rota com pontos
+          🗺️ Rotas
+          <span>Criar, abrir Maps e gerenciar</span>
         </button>
 
         <div class="modulo-conteudo" id="moduloCriarRota">
+          <h3>Dados da rota</h3>
+
           <label for="nomeRota">Nome da rota</label>
           <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
 
@@ -212,34 +193,28 @@
             Nova rota em branco
           </button>
 
-            <hr />
+          <hr />
 
-            <h3>Rota salva / edição</h3>
+          <h3>Rota salva / edição</h3>
 
-            <div id="listaPontosRotaSalva"></div>
+          <div id="listaPontosRotaSalva"></div>
 
-            <div class="acoes">
-              <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
-                Abrir rota completa no Google Maps
-              </button>
+          <div class="acoes">
+            <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
+              Abrir rota completa no Google Maps
+            </button>
 
-              <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
-                Limpar pontos desta rota
-              </button>
-            </div>
+            <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
+              Limpar pontos desta rota
+            </button>
+          </div>
 
           <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
-        </div>
-      </section>
 
+          <hr />
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloGerenciarRotas"
-          onclick="toggleModulo('moduloGerenciarRotas')">
-          🧭 Gerenciar rotas
-        </button>
+          <h3>Gerenciar rotas</h3>
 
-        <div class="modulo-conteudo" id="moduloGerenciarRotas">
           <label for="filtroStatusRotas">Filtrar por status</label>
           <select id="filtroStatusRotas" onchange="carregarGerenciamentoRotas()">
             <option value="todas">Todas</option>
