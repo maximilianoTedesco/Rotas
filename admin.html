@@ -7,7 +7,7 @@
   <title>ADM | Rotas Algarve</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css?v=13" />
+  <link rel="stylesheet" href="admin.css?v=14" />
 </head>
 
 <body>
@@ -83,9 +83,13 @@
           <label for="coordenadasPontoBase">Coordenadas</label>
           <input type="text" id="coordenadasPontoBase" readonly placeholder="Clique no mapa para selecionar" />
 
-          <p class="aviso destaque">Clique no mapa para selecionar o ponto fixo.</p>
+          <details class="mapa-expandido" ontoggle="ajustarMapaCadastro(this)">
+            <summary>📍 Abrir mapa para selecionar ponto</summary>
 
-          <div id="map"></div>
+            <p class="aviso destaque">Clique no mapa para selecionar o ponto fixo.</p>
+
+            <div id="map"></div>
+          </details>
 
           <button type="button" class="btn-verde" onclick="salvarPontoBase()">Salvar ponto fixo</button>
 
@@ -202,7 +206,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=13"></script>
+  <script src="admin.js?v=14"></script>
 </body>
 
 </html>

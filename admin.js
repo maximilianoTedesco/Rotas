@@ -155,7 +155,17 @@ function iniciarMapa() {
   });
 }
 
+function ajustarMapaCadastro(details) {
+    if (!details.open) return;
 
+    setTimeout(() => {
+      if (!mapa) {
+        iniciarMapa();
+      } else {
+        mapa.invalidateSize();
+      }
+    }, 250);
+  }
 
 async function criarMotorista() {
   const nome = document.getElementById("nomeMotorista").value.trim();
@@ -1087,7 +1097,6 @@ async function iniciarPagina() {
 
   if (!autorizado) return;
 
-  iniciarMapa();
 
   await carregarMotoristas();
   await listarMotoristas();

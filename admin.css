@@ -172,268 +172,111 @@ body {
   color: #cbd5e1;
 }
 
+.modulo-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seta {
+  font-size: 13px;
+  color: #94a3b8;
+  transition: transform .2s ease;
+}
+
+.modulo-card.ativo .seta {
+  transform: rotate(180deg);
+}
+
+.modulo-card {
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.modulo-card.ativo {
+  border-color: #cbd5e1;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.10);
+}
+
+.modulo-titulo {
+  min-height: 68px;
+  transition: background .2s ease;
+}
+
+.modulo-titulo:hover {
+  background: #f8fafc;
+}
+
+.modulo-card.ativo .modulo-titulo {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.modulo-card.ativo .modulo-titulo span {
+  color: #64748b;
+}
+
 .modulo-conteudo {
   display: none;
-  padding: 18px;
-  border-top: 1px solid #e2e8f0;
+  padding: 14px;
+  background: #ffffff;
 }
 
 .modulo-conteudo.ativo {
   display: block;
 }
 
-.duas-colunas,
-.rota-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.pontos-layout {
-  grid-template-columns: minmax(320px, 1.1fr) minmax(300px, .9fr);
-}
-
-.subcard {
+.motorista-card,
+.ponto,
+.rota-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 16px;
+  box-shadow: none;
 }
 
-.destaque-rota {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+.motorista-card h3,
+.ponto h3,
+.rota-card h3 {
+  font-size: 16px;
 }
 
-label {
-  display: block;
-  margin: 12px 0 6px;
-  font-weight: 700;
-  color: #334155;
+.motorista-card p,
+.ponto p,
+.rota-card p {
+  font-size: 14px;
+  color: #475569;
 }
 
-input,
-select,
-textarea {
-  width: 100%;
-  border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 15px;
-  background: #ffffff;
-  color: #0f172a;
-}
-
-textarea {
-  min-height: 86px;
-  resize: vertical;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: 2px solid #bfdbfe;
-  border-color: #2563eb;
-}
-
-.linha-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-button {
-  border: 0;
-  border-radius: 12px;
-  padding: 11px 14px;
-  font-weight: 800;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.btn-verde {
-  background: #16a34a;
-  color: #ffffff;
-}
-
-.btn-azul {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.btn-cinza {
-  background: #475569;
-  color: #ffffff;
-}
-
-.btn-vermelho {
-  background: #dc2626;
-  color: #ffffff;
-}
-
-button:hover {
-  filter: brightness(0.96);
-}
-
-#map {
-  width: 100%;
-  height: 360px;
-  border-radius: 18px;
-  overflow: hidden;
+.mapa-expandido {
   margin: 12px 0;
-  border: 1px solid #cbd5e1;
-}
-
-.resumo-rota {
-  background: #ffffff;
-  border: 1px dashed #86efac;
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 14px;
-  line-height: 1.5;
-}
-
-.ponto,
-.motorista-card,
-.rota-card {
-  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+.mapa-expandido summary {
+  cursor: pointer;
   padding: 14px;
-  margin: 12px 0;
-}
-
-.ponto h3,
-.motorista-card h3,
-.rota-card h3 {
-  margin-bottom: 8px;
-}
-
-.ponto p,
-.motorista-card p,
-.rota-card p {
-  margin: 5px 0;
+  font-weight: 800;
   color: #334155;
-  line-height: 1.35;
+  list-style: none;
 }
 
-.divisor {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 14px 0;
+.mapa-expandido summary::-webkit-details-marker {
+  display: none;
 }
 
-.status-ativo,
-.status-finalizada {
-  color: #15803d;
-  font-weight: 800;
+.mapa-expandido[open] summary {
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
-.status-inativo,
-.status-cancelada {
-  color: #b91c1c;
-  font-weight: 800;
+.mapa-expandido .aviso {
+  padding: 0 14px;
 }
 
-.status-ativa {
-  color: #2563eb;
-  font-weight: 800;
-}
-
-.rota-card .acoes,
-.ponto .acoes {
-  margin-top: 12px;
-}
-
-@media (max-width: 860px) {
-  body {
-    padding: 10px;
-  }
-
-  .topo,
-  .painel-opcoes-topo,
-  .gerenciar-topo {
-    flex-direction: column;
-  }
-
-  .top-actions,
-  .principais {
-    width: 100%;
-  }
-
-  .top-actions button,
-  .principais button {
-    flex: 1;
-  }
-
-  .grid-opcoes-limpo,
-  .duas-colunas,
-  .rota-grid,
-  .pontos-layout,
-  .linha-form {
-    grid-template-columns: 1fr;
-  }
-
-  .painel-atual {
-    width: 100%;
-    text-align: center;
-    white-space: normal;
-  }
-
-  .modulo-titulo {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  #map {
-    height: 300px;
-  }
-}
-
-.modulo-info{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.seta{
-    transition:all .3s ease;
-    font-size:14px;
-}
-
-.modulo-card.ativo .seta{
-    transform:rotate(180deg);
-}
-
-.modulo-conteudo{
-    display:block;
-    max-height:0;
-    overflow:hidden;
-    padding:0 18px;
-    transition:
-        max-height .35s ease,
-        padding .35s ease;
-}
-
-.modulo-conteudo.ativo{
-    max-height:5000px;
-    padding:18px;
-}
-
-.modulo-titulo{
-    transition:all .2s ease;
-}
-
-.modulo-titulo:hover{
-    background:#f8fafc;
-}
-
-.modulo-card.ativo{
-    box-shadow:
-        0 18px 40px rgba(15,23,42,.12);
-}
-
-.modulo-card{
-    transition:all .2s ease;
+.mapa-expandido #map {
+  margin: 12px 14px 14px;
+  width: calc(100% - 28px);
 }
