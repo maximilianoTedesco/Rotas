@@ -4,58 +4,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>ADM | Rotas Algarve</title>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css?v=12" />
+  <link rel="stylesheet" href="admin.css?v=13" />
 </head>
 
 <body>
   <div class="container">
     <header>
       <h1>Painel ADM</h1>
-      <p>Cadastro de motoristas, pontos fixos e rotas em um fluxo mais simples.</p>
+      <p>Gestão de motoristas, pontos fixos e rotas.</p>
 
       <div class="top-actions">
-        <button type="button" class="btn-azul" onclick="irMotorista()">
-          Ver motorista
-        </button>
-
-        <button type="button" class="btn-cinza" onclick="sair()">
-          Sair
-        </button>
+        <button type="button" class="btn-azul" onclick="irMotorista()">Ver motorista</button>
+        <button type="button" class="btn-cinza" onclick="sair()">Sair</button>
       </div>
     </header>
-
-    <section class="card painel-opcoes">
-      <h2>Escolha uma área</h2>
-      <p>O ADM está dividido em apenas 3 áreas principais.</p>
-
-      <div class="grid-opcoes">
-        <button type="button" class="opcao-card" data-painel="moduloCadastrarMotorista"
-          onclick="abrirPainel('moduloCadastrarMotorista')">
-          <strong>🚐 Motoristas</strong>
-          <span>Cadastrar, editar, alterar senha e ativar/inativar.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloCadastrarPonto"
-          onclick="abrirPainel('moduloCadastrarPonto')">
-          <strong>📍 Pontos base</strong>
-          <span>Cadastrar no mapa e consultar locais salvos.</span>
-        </button>
-
-        <button type="button" class="opcao-card" data-painel="moduloCriarRota"
-          onclick="abrirPainel('moduloCriarRota')">
-          <strong>🗺️ Rotas</strong>
-          <span>Criar, salvar, abrir no Maps e gerenciar rotas.</span>
-        </button>
-      </div>
-
-      <p class="painel-atual" id="painelAtualTexto">
-        Nenhum painel aberto.
-      </p>
-    </section>
 
     <div class="modulos-wrapper">
 
@@ -63,7 +28,7 @@
         <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista"
           onclick="toggleModulo('moduloCadastrarMotorista')">
           🚐 Motoristas
-          <span>Novo cadastro e gestão</span>
+          <span>Cadastrar, editar, senha e status</span>
         </button>
 
         <div class="modulo-conteudo" id="moduloCadastrarMotorista">
@@ -78,18 +43,15 @@
           <label for="senhaMotorista">Senha provisória</label>
           <input type="password" id="senhaMotorista" placeholder="Mínimo 6 caracteres" />
 
-          <button type="button" class="btn-verde" onclick="criarMotorista()">
-            Criar motorista
-          </button>
+          <button type="button" class="btn-verde" onclick="criarMotorista()">Criar motorista</button>
 
           <p class="aviso">
-            Após criar, o motorista poderá entrar pela tela de login usando o e-mail e a senha cadastrados.
+            Após criar, o motorista poderá entrar pela tela de login.
           </p>
 
           <hr />
 
           <h3>Motoristas cadastrados</h3>
-
           <div id="listaMotoristas">
             <p>Carregando motoristas...</p>
           </div>
@@ -119,14 +81,11 @@
 
           <div id="map"></div>
 
-          <button type="button" class="btn-verde" onclick="salvarPontoBase()">
-            Salvar ponto fixo
-          </button>
+          <button type="button" class="btn-verde" onclick="salvarPontoBase()">Salvar ponto fixo</button>
 
           <hr />
 
           <h3>Pontos cadastrados</h3>
-
           <div id="listaPontosBase"></div>
         </div>
       </section>
@@ -135,7 +94,7 @@
         <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
           onclick="toggleModulo('moduloCriarRota')">
           🗺️ Rotas
-          <span>Criar, abrir Maps e gerenciar</span>
+          <span>Criar, salvar, abrir Maps e gerenciar</span>
         </button>
 
         <div class="modulo-conteudo" id="moduloCriarRota">
@@ -159,7 +118,7 @@
 
           <h3>Adicionar pontos da rota</h3>
           <p class="aviso">
-            Adicione os pontos abaixo antes de salvar. O último ponto adicionado será o destino final da rota.
+            O último ponto adicionado será o destino final da rota.
           </p>
 
           <label for="selectPontoBase">Ponto cadastrado</label>
@@ -234,7 +193,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=12"></script>
+  <script src="admin.js?v=13"></script>
 </body>
 
 </html>
