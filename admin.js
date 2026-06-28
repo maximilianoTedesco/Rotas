@@ -74,6 +74,17 @@ function abrirPainel(id) {
 
   atualizarEstadoVisualPainel(id);
 
+  const cardAberto = elemento.closest(".modulo-card");
+
+    if (cardAberto) {
+      setTimeout(() => {
+        cardAberto.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 150);
+    }
+
   setTimeout(() => {
     if (mapa) {
       mapa.invalidateSize();
