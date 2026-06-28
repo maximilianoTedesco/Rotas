@@ -61,77 +61,71 @@ function atualizarEstadoVisualPainel(idAberto) {
   });
 }
 
-function abrirPainel(id) {
-  document.querySelectorAll(".modulo-conteudo").forEach((conteudo) => {
-    conteudo.classList.remove("ativo");
-  });
+function abrirPainel(id){
 
-  const elemento = document.getElementById(id);
-
-  if (!elemento) return;
-
-  elemento.classList.add("ativo");
-
-  atualizarEstadoVisualPainel(id);
-
-  const cardAberto = elemento.closest(".modulo-card");
-
-    if (cardAberto) {
-      setTimeout(() => {
-        cardAberto.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
+    document
+        .querySelectorAll(".modulo-conteudo")
+        .forEach((conteudo)=>{
+            conteudo.classList.remove("ativo");
         });
-      }, 150);
+
+    document
+        .querySelectorAll(".modulo-card")
+        .forEach((card)=>{
+            card.classList.remove("ativo");
+        });
+
+    const elemento=document.getElementById(id);
+
+    if(!elemento) return;
+
+    elemento.classList.add("ativo");
+
+    const card=elemento.closest(".modulo-card");
+
+    if(card){
+        card.classList.add("ativo");
     }
 
-  setTimeout(() => {
-    if (mapa) {
-      mapa.invalidateSize();
+    atualizarEstadoVisualPainel(id);
+
+    setTimeout(()=>{
+        if(card){
+            card.scrollIntoView({
+                behavior:"smooth",
+                block:"start"
+            });
+        }
+    },200);
+
+    setTimeout(()=>{
+        if(mapa){
+            mapa.invalidateSize();
+        }
+    },400);
+}
+
+function toggleModulo(id){
+
+    const elemento=document.getElementById(id);
+
+    if(!elemento) return;
+
+    if(elemento.classList.contains("ativo")){
+
+        elemento.classList.remove("ativo");
+
+        const card=elemento.closest(".modulo-card");
+
+        if(card){
+            card.classList.remove("ativo");
+        }
+
+        atualizarEstadoVisualPainel(null);
+        return;
     }
-  }, 300);
-}
 
-function toggleModulo(id) {
-  const elemento = document.getElementById(id);
-
-  if (!elemento) return;
-
-  if (elemento.classList.contains("ativo")) {
-    elemento.classList.remove("ativo");
-    atualizarEstadoVisualPainel(null);
-    return;
-  }
-
-  abrirPainel(id);
-}
-
-async function verificarLogin() {
-  const { data: sessionData } = await supabaseClient.auth.getSession();
-
-  if (!sessionData.session) {
-    window.location.href = "index.html";
-    return false;
-  }
-
-  const userId = sessionData.session.user.id;
-
-  const { data: perfil, error } = await supabaseClient
-    .from("perfis")
-    .select("*")
-    .eq("id", userId)
-    .eq("ativo", true)
-    .single();
-
-  if (error || !perfil || perfil.perfil !== "admin") {
-    await supabaseClient.auth.signOut();
-    localStorage.clear();
-    window.location.href = "index.html";
-    return false;
-  }
-
-  localStorage.setItem("usuarioLogado", "admin");
-  return true;
+    abrirPainel(id);
 }
 
 function iniciarMapa() {
