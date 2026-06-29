@@ -1,74 +1,175 @@
-
 const { createClient } = require("@supabase/supabase-js");
 
+const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
 module.exports = async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Método não permitido"
-    });
-  }
 
-  try {
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return res.status(500).json({
-        error: "Variáveis de ambiente não configuradas na Vercel"
-      });
+    if (req.method !== "POST") {
+        return res.status(405).json({
+            error: "Método não permitido"
+        });
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    try {
 
-    const { nome, email, senha } = req.body;
+        const {
+            acao,
+            id,
+            nome,
+            email,
+            senha,
+            ativo
+        } = req.body;
 
-    if (!nome || !email || !senha) {
-      return res.status(400).json({
-        error: "Nome, e-mail e senha são obrigatórios"
-      });
-    }
+        // =====================================
+        // EDITAR
+        // =====================================
 
-    const { data: usuarioCriado, error: erroAuth } =
-      await supabaseAdmin.auth.admin.createUser({
-        email,
-        password: senha,
-        email_confirm: true,
-        user_metadata: {
-          nome
+        if (acao === "editar") {
+
+            const { error } = await supabaseAdmin
+                .from("perfis")
+                .update({
+                    nome,
+                    email
+                })
+                .eq("id", id);
+
+            if (error) {
+                return res.status(400).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true
+            });
         }
-      });
 
-    if (erroAuth) {
-      return res.status(400).json({
-        error: erroAuth.message
-      });
+        // =====================================
+        // SENHA
+        // =====================================
+
+        if (acao === "senha") {
+
+            const { error } =
+                await supabaseAdmin.auth.admin.updateUserById(
+                    id,
+                    {
+                        password: senha
+                    }
+                );
+
+            if (error) {
+                return res.status(400).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true
+            });
+        }
+
+        // =====================================
+        // STATUS
+        // =====================================
+
+        if (acao === "status") {
+
+            const { error } = await supabaseAdmin
+                .from("perfis")
+                .update({
+                    ativo
+                })
+                .eq("id", id);
+
+            if (error) {
+                return res.status(400).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true
+            });
+        }
+
+        // =====================================
+        // ARQUIVAR
+        // =====================================
+
+        if (acao === "arquivar") {
+
+            const { error } = await supabaseAdmin
+                .from("perfis")
+                .update({
+                    ativo: false,
+                    arquivado: true
+                })
+                .eq("id", id);
+
+            if (error) {
+                return res.status(400).json({
+                    error: error.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true
+            });
+        }
+
+        // =====================================
+        // EXCLUIR
+        // =====================================
+
+        if (acao === "excluir") {
+
+            const { error: erroPerfil } =
+                await supabaseAdmin
+                    .from("perfis")
+                    .delete()
+                    .eq("id", id);
+
+            if (erroPerfil) {
+                return res.status(400).json({
+                    error: erroPerfil.message
+                });
+            }
+
+            const { error: erroAuth } =
+                await supabaseAdmin
+                    .auth
+                    .admin
+                    .deleteUser(id);
+
+            if (erroAuth) {
+                return res.status(400).json({
+                    error: erroAuth.message
+                });
+            }
+
+            return res.status(200).json({
+                success: true
+            });
+        }
+
+        // =====================================
+        // AÇÃO INVÁLIDA
+        // =====================================
+
+        return res.status(400).json({
+            error: "Ação inválida"
+        });
+
+    } catch (error) {
+
+        return res.status(500).json({
+            error: error.message
+        });
     }
-
-    const userId = usuarioCriado.user.id;
-
-    const { error: erroPerfil } = await supabaseAdmin
-      .from("perfis")
-      .insert({
-        id: userId,
-        nome,
-        email,
-        perfil: "motorista",
-        ativo: true
-      });
-
-    if (erroPerfil) {
-      return res.status(400).json({
-        error: erroPerfil.message
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Motorista criado com sucesso"
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message
-    });
-  }
 };
