@@ -107,9 +107,9 @@ body {
 }
 
 .acoes-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:8px;
   margin-top: 12px;
 }
 

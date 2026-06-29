@@ -65,6 +65,28 @@ module.exports = async function handler(req, res) {
         .update({ ativo })
         .eq("id", id);
 
+      if (acao === "excluir") {
+
+    const { error } = await supabaseAdmin
+        .from("perfis")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+          return res
+              .status(400)
+              .json({
+                  error:error.message
+              });
+                  }
+
+                  return res
+                      .status(200)
+                      .json({
+                          sucesso:true
+                      });
+              }
+
       if (erroPerfil) {
         return res.status(400).json({ error: erroPerfil.message });
       }

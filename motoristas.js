@@ -111,7 +111,13 @@ function renderizarMotoristas(listaMotoristas) {
                             Editar
 
                         </button>
+                        <button
+                            class="btn-vermelho"
+                            onclick="excluirMotorista('${motorista.id}')">
 
+                            Excluir
+
+                        </button>
                         <button
                             class="btn-senha"
                             onclick="alterarSenha('${motorista.id}')">
@@ -412,6 +418,47 @@ async function iniciar() {
         await verificarLogin();
 
     if (!ok) return;
+
+    carregarMotoristas();
+}
+
+async function excluirMotorista(id){
+
+    const confirmar = confirm(
+        "Deseja excluir definitivamente este motorista?"
+    );
+
+    if(!confirmar) return;
+
+    const resposta = await fetch(
+        "/api/gerenciar-motorista",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                acao:"excluir",
+                id
+            })
+        }
+    );
+
+    const resultado = await resposta.json();
+
+    if(!resposta.ok){
+
+        alert(
+            resultado.error ||
+            "Erro ao excluir motorista."
+        );
+
+        return;
+    }
+
+    alert(
+        "Motorista excluído."
+    );
 
     carregarMotoristas();
 }
