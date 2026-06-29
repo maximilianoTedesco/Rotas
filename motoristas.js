@@ -34,7 +34,8 @@ async function carregarMotoristas() {
         await supabaseClient
             .from("perfis")
             .select("*")
-            .eq("perfil", "motorista")
+            .eq("perfil","motorista")
+            .eq("arquivado", false)
             .order("nome");
 
     if (error) {
@@ -146,6 +147,13 @@ function renderizarMotoristas(listaMotoristas) {
 
                         </button>
 
+                        <button
+                            class="btn-arquivar"
+                            onclick="arquivarMotorista('${motorista.id}')">
+
+                            Arquivar
+
+                        </button>
                     </div>
 
                 </div>
@@ -458,6 +466,48 @@ async function excluirMotorista(id){
 
     alert(
         "Motorista excluído."
+    );
+
+    carregarMotoristas();
+}
+
+async function arquivarMotorista(id){
+
+    const confirmar = confirm(
+        "Deseja arquivar este motorista?"
+    );
+
+    if(!confirmar) return;
+
+    const resposta = await fetch(
+        "/api/gerenciar-motorista",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                acao:"arquivar",
+                id
+            })
+        }
+    );
+
+    const resultado =
+        await resposta.json();
+
+    if(!resposta.ok){
+
+        alert(
+            resultado.error ||
+            "Erro ao arquivar."
+        );
+
+        return;
+    }
+
+    alert(
+        "Motorista arquivado."
     );
 
     carregarMotoristas();

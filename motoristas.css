@@ -208,3 +208,8 @@ body {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+.btn-arquivar{
+    background:#f59e0b;
+    color:#fff;
+}
