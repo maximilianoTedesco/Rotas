@@ -1,212 +1,64 @@
 <!DOCTYPE html>
 <html lang="pt-PT">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>ADM | Rotas Algarve</title>
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="admin.css?v=14" />
+  <link rel="stylesheet" href="admin.css?v=15" />
 </head>
 
 <body>
   <div class="container">
-    <header>
-      <h1>Painel ADM</h1>
-      <p>Gestão de motoristas, pontos fixos e rotas.</p>
+
+    <header class="topo">
+      <div>
+        <span class="tag-sistema">Rotas Algarve</span>
+        <h1>Painel ADM</h1>
+        <p>Central de gestão do sistema.</p>
+      </div>
 
       <div class="top-actions">
-        <button type="button" class="btn-azul" onclick="irMotorista()">Ver motorista</button>
-        <button type="button" class="btn-cinza" onclick="sair()">Sair</button>
+        <button type="button" class="btn-cinza" onclick="irMotorista()">Ver motorista</button>
+        <button type="button" class="btn-vermelho" onclick="sair()">Sair</button>
       </div>
     </header>
 
-    <div class="modulos-wrapper">
+    <main class="dashboard-grid">
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarMotorista"
-          onclick="toggleModulo('moduloCadastrarMotorista')">
-          🚐 Motoristas
-          <div class="modulo-info">
-            <span>Cadastrar, editar, senha e status</span>
-            <span class="seta">▼</span>
-          </div>
-        </button>
-
-        <div class="modulo-conteudo" id="moduloCadastrarMotorista">
-          <h3>Novo motorista</h3>
-
-          <label for="nomeMotorista">Nome do motorista</label>
-          <input type="text" id="nomeMotorista" placeholder="Ex: João Silva" />
-
-          <label for="emailMotorista">E-mail do motorista</label>
-          <input type="email" id="emailMotorista" placeholder="Ex: motorista@email.com" />
-
-          <label for="senhaMotorista">Senha provisória</label>
-          <input type="password" id="senhaMotorista" placeholder="Mínimo 6 caracteres" />
-
-          <button type="button" class="btn-verde" onclick="criarMotorista()">Criar motorista</button>
-
-          <p class="aviso">
-            Após criar, o motorista poderá entrar pela tela de login.
-          </p>
-
-          <hr />
-
-          <h3>Motoristas cadastrados</h3>
-          <div id="listaMotoristas">
-            <p>Carregando motoristas...</p>
-          </div>
+      <button type="button" class="dashboard-card" onclick="window.location.href='motoristas.html'">
+        <div class="dashboard-icone">🚐</div>
+        <div>
+          <h2>Motoristas</h2>
+          <p>Pesquisar, cadastrar, editar, alterar senha e ativar/inativar.</p>
         </div>
-      </section>
+        <span class="dashboard-seta">›</span>
+      </button>
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCadastrarPonto"
-          onclick="toggleModulo('moduloCadastrarPonto')">
-          📍 Pontos base
-          <div class="modulo-info">
-            <span>Mapa, cadastro e lista</span>
-            <span class="seta">▼</span>
-          </div>
-        </button>
-
-        <div class="modulo-conteudo" id="moduloCadastrarPonto">
-          <h3>Novo ponto fixo</h3>
-
-          <label for="nomePontoBase">Nome do ponto</label>
-          <input type="text" id="nomePontoBase" placeholder="Ex: Paragem Praia da Rocha" />
-
-          <label for="enderecoPontoBase">Endereço / referência</label>
-          <input type="text" id="enderecoPontoBase" placeholder="Ex: Em frente à paragem principal" />
-
-          <label for="coordenadasPontoBase">Coordenadas</label>
-          <input type="text" id="coordenadasPontoBase" readonly placeholder="Clique no mapa para selecionar" />
-
-          <details class="mapa-expandido" ontoggle="ajustarMapaCadastro(this)">
-            <summary>📍 Abrir mapa para selecionar ponto</summary>
-
-            <p class="aviso destaque">Clique no mapa para selecionar o ponto fixo.</p>
-
-            <div id="map"></div>
-          </details>
-
-          <button type="button" class="btn-verde" onclick="salvarPontoBase()">Salvar ponto fixo</button>
-
-          <hr />
-
-          <h3>Pontos cadastrados</h3>
-          <div id="listaPontosBase"></div>
+      <button type="button" class="dashboard-card" onclick="window.location.href='pontos.html'">
+        <div class="dashboard-icone">📍</div>
+        <div>
+          <h2>Pontos Base</h2>
+          <p>Cadastrar pontos no mapa, pesquisar e gerenciar pontos salvos.</p>
         </div>
-      </section>
+        <span class="dashboard-seta">›</span>
+      </button>
 
-      <section class="card modulo-card">
-        <button type="button" class="modulo-titulo" data-painel="moduloCriarRota"
-          onclick="toggleModulo('moduloCriarRota')">
-          🗺️ Rotas
-          <div class="modulo-info">
-            <span>Criar, salvar, abrir Maps e gerenciar</span>
-            <span class="seta">▼</span>
-          </div>
-                  </button>
-
-        <div class="modulo-conteudo" id="moduloCriarRota">
-          <h3>Dados da rota</h3>
-
-          <label for="nomeRota">Nome da rota</label>
-          <input type="text" id="nomeRota" placeholder="Ex: Rota Manhã Portimão - Hotéis" />
-
-          <label for="dataRota">Data</label>
-          <input type="date" id="dataRota" />
-
-          <label for="horarioInicio">Horário inicial</label>
-          <input type="time" id="horarioInicio" />
-
-          <label for="motoristaRota">Motorista responsável</label>
-          <select id="motoristaRota">
-            <option value="">Selecione o motorista</option>
-          </select>
-
-          <hr />
-
-          <h3>Adicionar pontos da rota</h3>
-          <p class="aviso">
-            O último ponto adicionado será o destino final da rota.
-          </p>
-
-          <label for="selectPontoBase">Ponto cadastrado</label>
-          <select id="selectPontoBase"></select>
-
-          <label for="horarioPrevisto">Horário previsto</label>
-          <input type="time" id="horarioPrevisto" />
-
-          <label for="qtdPassageiros">Quantidade de passageiros</label>
-          <input type="number" id="qtdPassageiros" min="0" placeholder="Ex: 4" />
-
-          <label for="observacao">Observação</label>
-          <textarea id="observacao" placeholder="Ex: esperar junto à paragem"></textarea>
-
-          <button type="button" class="btn-azul" onclick="adicionarPontoNaRota()">
-            Adicionar ponto na lista
-          </button>
-
-          <div id="resumoRotaTemporaria" class="resumo-rota">
-            <strong>Resumo da rota:</strong><br>
-            Adicione pelo menos 2 pontos para calcular distância e tempo.
-          </div>
-
-          <div id="listaPontosRota"></div>
-
-          <button type="button" class="btn-verde" onclick="salvarRota()">
-            Salvar rota com pontos
-          </button>
-
-          <button type="button" class="btn-cinza" onclick="limparFormularioRota()">
-            Nova rota em branco
-          </button>
-
-          <hr />
-
-          <h3>Rota salva / edição</h3>
-
-          <div id="listaPontosRotaSalva"></div>
-
-          <div class="acoes">
-            <button type="button" class="btn-azul" onclick="abrirRotaCompleta()">
-              Abrir rota completa no Google Maps
-            </button>
-
-            <button type="button" class="btn-vermelho" onclick="limparRotaAtual()">
-              Limpar pontos desta rota
-            </button>
-          </div>
-
-          <p class="aviso" id="rotaAtualTexto">Nenhuma rota carregada.</p>
-
-          <hr />
-
-          <h3>Gerenciar rotas</h3>
-
-          <label for="filtroStatusRotas">Filtrar por status</label>
-          <select id="filtroStatusRotas" onchange="carregarGerenciamentoRotas()">
-            <option value="todas">Todas</option>
-            <option value="ativa">Ativas</option>
-            <option value="finalizada">Finalizadas</option>
-            <option value="cancelada">Canceladas</option>
-          </select>
-
-          <div id="listaGerenciamentoRotas">
-            <p>Carregando rotas...</p>
-          </div>
+      <button type="button" class="dashboard-card" onclick="window.location.href='rotas.html'">
+        <div class="dashboard-icone">🗺️</div>
+        <div>
+          <h2>Rotas</h2>
+          <p>Criar rotas, adicionar pontos, abrir no Maps e gerenciar rotas salvas.</p>
         </div>
-      </section>
+        <span class="dashboard-seta">›</span>
+      </button>
 
-    </div>
+    </main>
+
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=14"></script>
+  <script src="admin.js?v=15"></script>
 </body>
-
 </html>
