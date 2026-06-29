@@ -1,282 +1,169 @@
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  background: #f1f5f9;
-  color: #0f172a;
-  padding: 16px;
+    font-family: Inter, Arial, sans-serif;
+    background: #f1f5f9;
+    color: #0f172a;
+    padding: 20px;
 }
 
 .container {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-}
-
-.topo,
-.card {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+    max-width: 1200px;
+    margin: auto;
 }
 
 .topo {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #ffffff;
-  padding: 24px;
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
+    background: linear-gradient(135deg,#0f172a,#1e293b);
+    color: white;
+    padding: 28px;
+    border-radius: 22px;
+    margin-bottom: 24px;
 
-.topo h1 {
-  font-size: 30px;
-  margin: 8px 0 4px;
-}
-
-.topo p {
-  color: #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
 }
 
 .tag-sistema {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: #bfdbfe;
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin-bottom: 8px;
 }
 
-.top-actions,
-.acoes,
-.principais {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.topo h1 {
+    font-size: 42px;
+    margin-bottom: 6px;
 }
 
-.card {
-  padding: 18px;
-  margin-bottom: 16px;
+.topo p {
+    color: #cbd5e1;
 }
 
-.painel-opcoes-topo,
-.gerenciar-topo {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
+.top-actions {
+    display: flex;
+    gap: 12px;
 }
 
-.painel-opcoes h2,
-.subcard h3 {
-  margin-bottom: 6px;
+button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    transition: .2s;
 }
 
-.painel-opcoes p,
-.aviso {
-  color: #64748b;
-  font-size: 14px;
-  line-height: 1.45;
+button:hover {
+    transform: translateY(-2px);
 }
 
-.painel-atual {
-  background: #e0f2fe;
-  color: #075985 !important;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 700;
-  white-space: nowrap;
+.btn-cinza {
+    background: #475569;
+    color: white;
 }
 
-.grid-opcoes {
-  display: grid;
-  gap: 12px;
+.btn-vermelho {
+    background: #dc2626;
+    color: white;
 }
 
-.grid-opcoes-limpo {
-  grid-template-columns: repeat(3, 1fr);
+.dashboard-grid {
+    display: grid;
+    gap: 18px;
 }
 
-.opcao-card {
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  border-radius: 18px;
-  padding: 16px;
-  text-align: left;
-  cursor: pointer;
-  transition: 0.2s;
+.dashboard-card {
+    width: 100%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    padding: 24px;
+
+    display: grid;
+    grid-template-columns: 70px 1fr 40px;
+    align-items: center;
+    gap: 20px;
+
+    box-shadow: 0 10px 30px rgba(15,23,42,.05);
+    transition: .25s;
 }
 
-.opcao-card strong,
-.opcao-card span {
-  display: block;
+.dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 40px rgba(15,23,42,.10);
+    border-color: #cbd5e1;
 }
 
-.opcao-card strong {
-  font-size: 18px;
-  margin-bottom: 6px;
+.dashboard-icone {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    background: #eff6ff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 30px;
 }
 
-.opcao-card span {
-  color: #64748b;
-  line-height: 1.35;
+.dashboard-card h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+    color: #0f172a;
 }
 
-.opcao-card:hover,
-.opcao-card.ativo {
-  background: #eff6ff;
-  border-color: #2563eb;
-  transform: translateY(-1px);
+.dashboard-card p {
+    color: #64748b;
+    line-height: 1.5;
+    font-size: 15px;
 }
 
-.modulo-card {
-  padding: 0;
-  overflow: hidden;
+.dashboard-seta {
+    font-size: 34px;
+    color: #94a3b8;
 }
 
-.modulo-titulo {
-  width: 100%;
-  border: 0;
-  background: #ffffff;
-  color: #0f172a;
-  padding: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: 800;
-  cursor: pointer;
-}
+@media (max-width: 768px) {
 
-.modulo-titulo span {
-  color: #64748b;
-  font-size: 13px;
-  font-weight: 600;
-}
+    body {
+        padding: 12px;
+    }
 
-.modulo-card.ativo .modulo-titulo {
-  background: #0f172a;
-  color: #ffffff;
-}
+    .topo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 
-.modulo-card.ativo .modulo-titulo span {
-  color: #cbd5e1;
-}
+    .topo h1 {
+        font-size: 32px;
+    }
 
-.modulo-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+    .top-actions {
+        width: 100%;
+    }
 
-.seta {
-  font-size: 13px;
-  color: #94a3b8;
-  transition: transform .2s ease;
-}
+    .top-actions button {
+        flex: 1;
+    }
 
-.modulo-card.ativo .seta {
-  transform: rotate(180deg);
-}
+    .dashboard-card {
+        grid-template-columns: 1fr;
+        text-align: left;
+        gap: 12px;
+    }
 
-.modulo-card {
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-}
-
-.modulo-card.ativo {
-  border-color: #cbd5e1;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.10);
-}
-
-.modulo-titulo {
-  min-height: 68px;
-  transition: background .2s ease;
-}
-
-.modulo-titulo:hover {
-  background: #f8fafc;
-}
-
-.modulo-card.ativo .modulo-titulo {
-  background: #f8fafc;
-  color: #0f172a;
-}
-
-.modulo-card.ativo .modulo-titulo span {
-  color: #64748b;
-}
-
-.modulo-conteudo {
-  display: none;
-  padding: 14px;
-  background: #ffffff;
-}
-
-.modulo-conteudo.ativo {
-  display: block;
-}
-
-.motorista-card,
-.ponto,
-.rota-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  box-shadow: none;
-}
-
-.motorista-card h3,
-.ponto h3,
-.rota-card h3 {
-  font-size: 16px;
-}
-
-.motorista-card p,
-.ponto p,
-.rota-card p {
-  font-size: 14px;
-  color: #475569;
-}
-
-.mapa-expandido {
-  margin: 12px 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  background: #f8fafc;
-  overflow: hidden;
-}
-
-.mapa-expandido summary {
-  cursor: pointer;
-  padding: 14px;
-  font-weight: 800;
-  color: #334155;
-  list-style: none;
-}
-
-.mapa-expandido summary::-webkit-details-marker {
-  display: none;
-}
-
-.mapa-expandido[open] summary {
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
-}
-
-.mapa-expandido .aviso {
-  padding: 0 14px;
-}
-
-.mapa-expandido #map {
-  margin: 12px 14px 14px;
-  width: calc(100% - 28px);
+    .dashboard-seta {
+        display: none;
+    }
 }
