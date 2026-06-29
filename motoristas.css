@@ -1,0 +1,210 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 14px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.topo {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #ffffff;
+  border-radius: 22px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.topo h1 {
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-size: 30px;
+}
+
+.topo p {
+  color: #cbd5e1;
+  margin-bottom: 14px;
+}
+
+.btn-voltar,
+.btn-novo,
+.btn-salvar,
+.btn-cancelar,
+.btn-editar,
+.btn-status,
+.btn-senha {
+  border: 0;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn-voltar {
+  background: #334155;
+  color: #ffffff;
+}
+
+.btn-novo {
+  background: #2563eb;
+  color: #ffffff;
+  width: 100%;
+}
+
+.pesquisa-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.pesquisa-card input,
+.modal-content input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 13px;
+  font-size: 15px;
+}
+
+.motorista-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.motorista-card h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.motorista-card p {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.status-ativo {
+  color: #15803d;
+  font-weight: 800;
+}
+
+.status-inativo {
+  color: #b91c1c;
+  font-weight: 800;
+}
+
+.acoes-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-editar {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-senha {
+  background: #475569;
+  color: #ffffff;
+}
+
+.btn-status {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.btn-status.inativo {
+  background: #dc2626;
+}
+
+.loading {
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 18px;
+  color: #64748b;
+  text-align: center;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 16px;
+  z-index: 999;
+}
+
+.modal.ativo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+.modal-content h2 {
+  margin-bottom: 14px;
+}
+
+.modal-content label {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: 800;
+}
+
+.acoes-modal {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.acoes-modal button {
+  flex: 1;
+}
+
+.btn-cancelar {
+  background: #475569;
+  color: #ffffff;
+}
+
+.btn-salvar {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+@media (min-width: 760px) {
+  .topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .btn-novo {
+    width: auto;
+  }
+
+  .acoes-card {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
