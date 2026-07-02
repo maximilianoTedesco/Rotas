@@ -14,6 +14,8 @@ module.exports = async function handler(req, res) {
 
     const { acao, id, nome, email, senha, ativo } = req.body;
 
+    console.log("AÇÃO RECEBIDA:", acao);
+
     if (!acao || !id) {
       return res.status(400).json({ error: "Ação e ID são obrigatórios" });
     }
@@ -65,52 +67,52 @@ module.exports = async function handler(req, res) {
         .update({ ativo })
         .eq("id", id);
 
-if (acao === "arquivar") {
+      if (acao === "arquivar") {
 
-    const { error } = await supabaseAdmin
-        .from("perfis")
-        .update({
+        const { error } = await supabaseAdmin
+          .from("perfis")
+          .update({
             ativo: false,
             arquivado: true
-        })
-        .eq("id", id);
+          })
+          .eq("id", id);
 
-    if (error) {
-        return res
+        if (error) {
+          return res
             .status(400)
             .json({
-                error: error.message
+              error: error.message
             });
-    }
+        }
 
-    return res
-        .status(200)
-        .json({
+        return res
+          .status(200)
+          .json({
             success: true
-        });
-}
+          });
+      }
 
       if (acao === "excluir") {
 
-    const { error } = await supabaseAdmin
-        .from("perfis")
-        .delete()
-        .eq("id", id);
+        const { error } = await supabaseAdmin
+          .from("perfis")
+          .delete()
+          .eq("id", id);
 
-      if (error) {
+        if (error) {
           return res
-              .status(400)
-              .json({
-                  error:error.message
-              });
-                  }
+            .status(400)
+            .json({
+              error: error.message
+            });
+        }
 
-                  return res
-                      .status(200)
-                      .json({
-                          sucesso:true
-                      });
-              }
+        return res
+          .status(200)
+          .json({
+            sucesso: true
+          });
+      }
 
       if (erroPerfil) {
         return res.status(400).json({ error: erroPerfil.message });
