@@ -34,7 +34,7 @@ async function carregarMotoristas() {
         await supabaseClient
             .from("perfis")
             .select("*")
-            .eq("perfil","motorista")
+            .eq("perfil", "motorista")
             .eq("arquivado", false)
             .order("nome");
 
@@ -88,17 +88,15 @@ function renderizarMotoristas(listaMotoristas) {
 
                     <p>
                         Status:
-                        <span class="${
-                            motorista.ativo
-                                ? "status-ativo"
-                                : "status-inativo"
-                        }">
+                        <span class="${motorista.ativo
+                    ? "status-ativo"
+                    : "status-inativo"
+                }">
 
-                        ${
-                            motorista.ativo
-                                ? "Ativo"
-                                : "Inativo"
-                        }
+                        ${motorista.ativo
+                    ? "Ativo"
+                    : "Inativo"
+                }
 
                         </span>
                     </p>
@@ -128,22 +126,20 @@ function renderizarMotoristas(listaMotoristas) {
                         </button>
 
                         <button
-                            class="btn-status ${
-                                motorista.ativo
-                                    ? "inativo"
-                                    : ""
-                            }"
+                            class="btn-status ${motorista.ativo
+                    ? "inativo"
+                    : ""
+                }"
 
                             onclick="alterarStatus(
                                 '${motorista.id}',
                                 ${!motorista.ativo}
                             )">
 
-                            ${
-                                motorista.ativo
-                                    ? "Inativar"
-                                    : "Ativar"
-                            }
+                            ${motorista.ativo
+                    ? "Inativar"
+                    : "Ativar"
+                }
 
                         </button>
 
@@ -430,64 +426,50 @@ async function iniciar() {
     carregarMotoristas();
 }
 
-async function excluirMotorista(id){
+async function excluirMotorista(id) {
+    const confirmar = confirm("Deseja excluir definitivamente este motorista?");
 
-    const confirmar = confirm(
-        "Deseja excluir definitivamente este motorista?"
-    );
+    if (!confirmar) return;
 
-    if(!confirmar) return;
-
-    const resposta = await fetch(
-        "/api/gerenciar-motorista",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                acao:"excluir",
-                id
-            })
-        }
-    );
+    const resposta = await fetch("/api/gerenciar-motorista", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            acao: "excluir",
+            id: id
+        })
+    });
 
     const resultado = await resposta.json();
 
-    if(!resposta.ok){
-
-        alert(
-            resultado.error ||
-            "Erro ao excluir motorista."
-        );
-
+    if (!resposta.ok) {
+        alert(resultado.error || "Erro ao excluir motorista.");
         return;
     }
 
-    alert(
-        "Motorista excluído."
-    );
-
+    alert("Motorista excluído com sucesso.");
     carregarMotoristas();
 }
 
-async function arquivarMotorista(id){
+async function arquivarMotorista(id) {
 
     const confirmar = confirm(
         "Deseja arquivar este motorista?"
     );
 
-    if(!confirmar) return;
+    if (!confirmar) return;
 
     const resposta = await fetch(
         "/api/gerenciar-motorista",
         {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-            body:JSON.stringify({
-                acao:"arquivar",
+            body: JSON.stringify({
+                acao: "arquivar",
                 id
             })
         }
@@ -496,7 +478,7 @@ async function arquivarMotorista(id){
     const resultado =
         await resposta.json();
 
-    if(!resposta.ok){
+    if (!resposta.ok) {
 
         alert(
             resultado.error ||

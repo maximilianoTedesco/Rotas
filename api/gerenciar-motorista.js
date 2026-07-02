@@ -65,6 +65,31 @@ module.exports = async function handler(req, res) {
         .update({ ativo })
         .eq("id", id);
 
+if (acao === "arquivar") {
+
+    const { error } = await supabaseAdmin
+        .from("perfis")
+        .update({
+            ativo: false,
+            arquivado: true
+        })
+        .eq("id", id);
+
+    if (error) {
+        return res
+            .status(400)
+            .json({
+                error: error.message
+            });
+    }
+
+    return res
+        .status(200)
+        .json({
+            success: true
+        });
+}
+
       if (acao === "excluir") {
 
     const { error } = await supabaseAdmin
