@@ -453,24 +453,24 @@ async function excluirMotorista(id) {
     carregarMotoristas();
 }
 
-async function arquivarMotorista(id) {
+async function arquivarMotorista(id){
 
     const confirmar = confirm(
         "Deseja arquivar este motorista?"
     );
 
-    if (!confirmar) return;
+    if(!confirmar) return;
 
     const resposta = await fetch(
         "/api/gerenciar-motorista",
         {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
             },
-            body: JSON.stringify({
-                acao: "arquivar",
-                id
+            body:JSON.stringify({
+                acao:"arquivar",
+                id:id
             })
         }
     );
@@ -478,7 +478,7 @@ async function arquivarMotorista(id) {
     const resultado =
         await resposta.json();
 
-    if (!resposta.ok) {
+    if(!resposta.ok){
 
         alert(
             resultado.error ||
@@ -490,6 +490,48 @@ async function arquivarMotorista(id) {
 
     alert(
         "Motorista arquivado."
+    );
+
+    carregarMotoristas();
+}
+
+async function excluirMotorista(id){
+
+    const confirmar = confirm(
+        "Deseja excluir definitivamente este motorista?"
+    );
+
+    if(!confirmar) return;
+
+    const resposta = await fetch(
+        "/api/gerenciar-motorista",
+        {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                acao:"excluir",
+                id:id
+            })
+        }
+    );
+
+    const resultado =
+        await resposta.json();
+
+    if(!resposta.ok){
+
+        alert(
+            resultado.error ||
+            "Erro ao excluir."
+        );
+
+        return;
+    }
+
+    alert(
+        "Motorista excluído."
     );
 
     carregarMotoristas();
